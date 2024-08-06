@@ -97,6 +97,7 @@ func routerUrl(db *sql.DB, rds *redis.Client, rmq rmqp.AMQP, logger *logger.Logg
 
 	r.Static("/static", path+"/"+PUBLIC_PATH)
 
+	//
 	return r
 
 }
