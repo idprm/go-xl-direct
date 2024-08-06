@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/idprm/go-tsel-direct/internal/domain/entity"
+	"github.com/idprm/go-xl-direct/internal/domain/entity"
 )
 
 const (
