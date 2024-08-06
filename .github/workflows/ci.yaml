@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+    tags:
+      - "v*"
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dockerfile: ./Dockerfile.listener
+            image: idprm/xl-direct-listener-service
+          - dockerfile: ./Dockerfile.mo
+            image: idprm/xl-direct-mo-service
+          - dockerfile: ./Dockerfile.pback_mo
+            image: idprm/xl-direct-postback-mo-service
+          - dockerfile: ./Dockerfile.pback_mt
+            image: idprm/xl-direct-postback-mt-service
+          - dockerfile: ./Dockerfile.pub_csv
+            image: idprm/xl-direct-pub-csv-service
+          - dockerfile: ./Dockerfile.pub_renewal
+            image: idprm/xl-direct-pub-renewal-service
+          - dockerfile: ./Dockerfile.pub_retry_dp
+            image: idprm/xl-direct-pub-retry-dp-service
+          - dockerfile: ./Dockerfile.pub_retry_fp
+            image: idprm/xl-direct-pub-retry-fp-service
+          - dockerfile: ./Dockerfile.pub_retry_insuff
+            image: idprm/xl-direct-pub-retry-insuff-service
+          - dockerfile: ./Dockerfile.pub_upload_csv
+            image: idprm/xl-direct-pub-upload-csv-service
+          - dockerfile: ./Dockerfile.renewal
+            image: idprm/xl-direct-renewal-service
+          - dockerfile: ./Dockerfile.retry_dp
+            image: idprm/xl-direct-retry-dp-service
+          - dockerfile: ./Dockerfile.retry_fp
+            image: idprm/xl-direct-retry-fp-service
+          - dockerfile: ./Dockerfile.retry_insuff
+            image: idprm/xl-direct-retry-insuff-service
+          - dockerfile: ./Dockerfile.notif
+            image: idprm/xl-direct-notif-service
+          - dockerfile: ./Dockerfile.traffic
+            image: idprm/xl-direct-traffic-service
+          - dockerfile: ./Dockerfile.dailypush
+            image: idprm/xl-direct-dailypush-service
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ matrix.image }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
