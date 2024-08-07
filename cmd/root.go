@@ -87,22 +87,16 @@ func init() {
 	 */
 	rootCmd.AddCommand(consumerMOCmd)
 	rootCmd.AddCommand(consumerRenewalCmd)
-	rootCmd.AddCommand(consumerRetryFpCmd)
-	rootCmd.AddCommand(consumerRetryDpCmd)
-	rootCmd.AddCommand(consumerRetryInsuffCmd)
 	rootCmd.AddCommand(consumerPostbackMOCmd)
 	rootCmd.AddCommand(consumerPostbackMTCmd)
 	rootCmd.AddCommand(consumerNotifCmd)
 	rootCmd.AddCommand(consumerTrafficCmd)
 	rootCmd.AddCommand(consumerDailypushCmd)
+	rootCmd.AddCommand(consumerTestCmd)
 
 	/**
 	 * Publisher Service
 	 */
-	rootCmd.AddCommand(publisherRenewalCmd)
-	rootCmd.AddCommand(publisherRetryFpCmd)
-	rootCmd.AddCommand(publisherRetryDpCmd)
-	rootCmd.AddCommand(publisherRetryInsuffCmd)
 	rootCmd.AddCommand(publisherCSVCmd)
 	rootCmd.AddCommand(publisherUploadCSVCmd)
 

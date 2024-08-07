@@ -3,14 +3,16 @@ package telco
 import (
 	"errors"
 	"io"
+	"log"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/idprm/go-xl-direct/internal/domain/entity"
 	"github.com/idprm/go-xl-direct/internal/logger"
 	"github.com/idprm/go-xl-direct/internal/utils"
-	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -45,141 +47,61 @@ func NewTelco(
 }
 
 type ITelco interface {
-	Token() ([]byte, error)
-	WebOptInOTP() (string, error)
-	WebOptInUSSD() (string, error)
-	WebOptInCaptcha() (string, error)
-	SMSbyParam() ([]byte, error)
+	Test() ([]byte, error)
+	OAuth() ([]byte, error)
+	CreateSubscription() ([]byte, error)
+	ConfirmOTP() ([]byte, error)
+	Refund() ([]byte, error)
+	UnsubscribeSubscription() ([]byte, error)
+	Notification() ([]byte, error)
 }
 
-func (t *Telco) Token() ([]byte, error) {
-	l := t.logger.Init("mt", true)
-
-	start := time.Now()
-	trxId := utils.GenerateTrxId()
-
-	req, err := http.NewRequest("GET", t.service.GetUrlTelco()+"/scrt/1/generate.php", nil)
+func (t *Telco) Test() ([]byte, error) {
+	params := url.Values{}
+	params.Add("client_id", "3S7QIae30ToXBghLAdoQY8V8rWnlYqiA")
+	params.Add("client_secret", "121c4kc9saaCKF9Hd7F3zesRUjOmSJs8")
+	params.Add("grant_type", "client_credentials")
+	resp, err := http.PostForm("https://staging-sdp.xlaxiata.id/dcb-nongoogle/oauth2/token",
+		params)
 	if err != nil {
+		log.Printf("Request Failed: %s", err)
 		return nil, err
 	}
-
-	q := req.URL.Query()
-	q.Add("cp_name", TELCO_CPNAME)
-	q.Add("pwd", TELCO_PWD)
-	q.Add("programid", t.service.GetProgramId())
-	q.Add("sid", t.service.GetSidOptIn())
-	q.Add("par", "1")
-
-	req.URL.RawQuery = q.Encode()
-
-	timeStamp := strconv.Itoa(int(time.Now().Unix()))
-	strData := TELCO_KEY + TELCO_SECRET + timeStamp
-
-	signature := utils.GetMD5Hash(strData)
-
-	req.Header.Set("api_key", TELCO_KEY)
-	req.Header.Set("x-signature", signature)
-
-	tr := &http.Transport{
-		MaxIdleConns:       30,
-		IdleConnTimeout:    30 * time.Second,
-		DisableCompression: true,
-	}
-
-	client := &http.Client{
-		Timeout:   30 * time.Second,
-		Transport: tr,
-	}
-
-	t.logger.Writer(req)
-	l.WithFields(logrus.Fields{
-		"request": t.service.GetUrlTelco() + "/scrt/1/generate.php?" + q.Encode(),
-		"trx_id":  trxId,
-	}).Info("MT_TOKEN")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
 	defer resp.Body.Close()
-
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		log.Printf("Reading body failed: %s", err)
 		return nil, err
 	}
+	// Unmarshal result
+	// post := Post{}
+	// err = json.Unmarshal(body, &post)
+	// if err != nil {
+	// 	log.Printf("Reading body failed: %s", err)
+	// 	return nil, err
+	// }
 
-	duration := time.Since(start).Milliseconds()
-	t.logger.Writer(string(body))
-	l.WithFields(logrus.Fields{
-		"response":    string(body),
-		"trx_id":      trxId,
-		"duration":    duration,
-		"status_code": resp.StatusCode,
-		"status_text": http.StatusText(resp.StatusCode),
-	}).Info("MT_TOKEN")
-
+	// log.Printf("Post added with ID %d", post.ID)
 	return body, nil
 }
 
-func (t *Telco) WebOptInOTP() (string, string, error) {
-	l := t.logger.Init("mt", true)
-
-	token, err := t.Token()
-	if err != nil {
-		return "", "", err
+func (t *Telco) OAuth() ([]byte, error) {
+	var p = url.Values{
+		"client_id":     {"3S7QIae30ToXBghLAdoQY8V8rWnlYqiA"},
+		"client_secret": {"121c4kc9saaCKF9Hd7F3zesRUjOmSJs8"},
+		"grant_type":    {"client_credentials"},
 	}
-	l.WithFields(logrus.Fields{"redirect": TELCO_URL_AUTH + "/transaksi/tauthwco?token=" + string(token)}).Info("MT_OPTIN")
-	return TELCO_URL_AUTH + "/transaksi/tauthwco?token=" + string(token), string(token), nil
-}
+	// p.Add("client_id", "3S7QIae30ToXBghLAdoQY8V8rWnlYqiA")
+	// p.Add("client_secret", "121c4kc9saaCKF9Hd7F3zesRUjOmSJs8")
+	// p.Add("grant_type", "client_credentials")
 
-func (t *Telco) WebOptInUSSD() (string, error) {
-	token, err := t.Token()
+	req, err := http.NewRequest(http.MethodPost, "https://staging-sdp.xlaxiata.id/dcb-nongoogle/oauth2/token", strings.NewReader(p.Encode()))
 	if err != nil {
-		return "", err
-	}
-	return TELCO_URL_AUTH + "/transaksi/konfirmasi/ussd?token=" + string(token), nil
-}
-
-func (t *Telco) WebOptInCaptcha() (string, error) {
-	token, err := t.Token()
-	if err != nil {
-		return "", err
-	}
-	return TELCO_URL_AUTH + "/transaksi/captchawco?token=" + string(token), nil
-}
-
-func (t *Telco) SMSbyParam() ([]byte, error) {
-	l := t.logger.Init("mt", true)
-	//
-	start := time.Now()
-	trxId := utils.GenerateTrxId()
-
-	req, err := http.NewRequest(http.MethodGet, t.service.GetUrlTelco()+"/scrt/cp/submitSM.jsp", nil)
-	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
-
-	q := req.URL.Query()
-	q.Add("cpid", TELCO_CPID)
-	q.Add("sender", TELCO_SENDER)
-	q.Add("pwd", TELCO_PWD)
-	q.Add("msisdn", t.subscription.GetMsisdn())
-	q.Add("sms", t.content.GetValue())
-	q.Add("sid", t.service.GetSidMt())
-	q.Add("tid", t.content.GetTid())
-
-	req.URL.RawQuery = q.Encode()
-
-	now := time.Now()
-	timeStamp := strconv.Itoa(int(now.Unix()))
-	strData := TELCO_KEY + TELCO_SECRET + timeStamp
-
-	signature := utils.GetMD5Hash(strData)
-
-	req.Header.Add("Accept-Charset", "utf-8")
-	req.Header.Set("api_key", TELCO_KEY)
-	req.Header.Set("x-signature", signature)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(p.Encode())))
 
 	tr := &http.Transport{
 		MaxIdleConns:       30,
@@ -192,12 +114,7 @@ func (t *Telco) SMSbyParam() ([]byte, error) {
 		Transport: tr,
 	}
 
-	t.logger.Writer(req)
-	l.WithFields(logrus.Fields{
-		"msisdn":  t.subscription.GetMsisdn(),
-		"request": t.service.GetUrlTelco() + "/scrt/cp/submitSM.jsp?" + q.Encode(),
-		"trx_id":  trxId,
-	}).Info("MT_SMS")
+	log.Println(req)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -211,16 +128,25 @@ func (t *Telco) SMSbyParam() ([]byte, error) {
 		return nil, errors.New(err.Error())
 	}
 
-	duration := time.Since(start).Milliseconds()
-	t.logger.Writer(string(body))
-	l.WithFields(logrus.Fields{
-		"msisdn":      t.subscription.GetMsisdn(),
-		"response":    string(body),
-		"trx_id":      trxId,
-		"duration":    duration,
-		"status_code": resp.StatusCode,
-		"status_text": http.StatusText(resp.StatusCode),
-	}).Info("MT_SMS")
-
 	return body, nil
+}
+
+func (t *Telco) CreateSubscription() ([]byte, error) {
+	return nil, nil
+}
+
+func (t *Telco) ConfirmOTP() ([]byte, error) {
+	return nil, nil
+}
+
+func (t *Telco) Refund() ([]byte, error) {
+	return nil, nil
+}
+
+func (t *Telco) UnsubscribeSubscription() ([]byte, error) {
+	return nil, nil
+}
+
+func (t *Telco) Notification() ([]byte, error) {
+	return nil, nil
 }

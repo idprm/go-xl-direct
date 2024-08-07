@@ -1,6 +1,9 @@
 package model
 
-import "strings"
+import (
+	"strings"
+	"time"
+)
 
 type CampaignDirectQueryRequest struct {
 	Service        string `json:"service" query:"service"`
@@ -155,8 +158,80 @@ func (e *SuccessQueryParamsRequest) SetIpAddress(data string) {
 	e.IpAddress = data
 }
 
-type WebResponse struct {
-	Error      bool   `json:"error"`
-	StatusCode int    `json:"status_code"`
-	Message    string `json:"message"`
+type OAuthRequest struct {
+	ClientId     string `form:"client_id" json:"client_id"`
+	ClientSecret string `form:"client_secret" json:"client_secret"`
+	GrantType    string `form:"grant_type" json:"grant_type"`
+}
+
+type CreateSubscriptionRequest struct {
+	RequestId      string `json:"requestId"`
+	ProductId      string `json:"productId"`
+	UserIdentifier string `json:"userIdentifier"`
+	Amount         string `json:"amount"`
+}
+
+type ConfirmOTPRequest struct {
+	RequestId string `json:"requestId"`
+	PIN       string `json:"pin"`
+}
+
+func (r *ConfirmOTPRequest) GetRequestId() string {
+	return r.RequestId
+}
+
+func (r *ConfirmOTPRequest) GetPIN() string {
+	return r.PIN
+}
+
+type RefundRequest struct {
+	Msisdn        string `json:"msisdn"`
+	ProductId     string `json:"productId"`
+	RequestId     string `json:"requestId"`
+	TransactionId string `json:"transactionId"`
+}
+
+type UnsubscribeRequest struct {
+	Msisdn    string `json:"msisdn"`
+	ProductId string `json:"productId"`
+	RequestId string `json:"requestId"`
+}
+
+type NotificationSubcriptionRequest struct {
+	UserIdentifier  string    `json:"userIdentifier"`
+	SubscriptionId  string    `json:"subscriptionId"`
+	ProductId       string    `json:"productId"`
+	Amount          float64   `json:"amount"`
+	StartDate       time.Time `json:"startDate"`
+	NextRenewalDate time.Time `json:"nextRenewalDate"`
+	Status          string    `json:"status"`
+	Context         string    `json:"context"`
+	TransactionId   string    `json:"transactionId"`
+}
+
+type NotificationUnSubcriptionRequest struct {
+	UserIdentifier string `json:"userIdentifier"`
+	SubscriptionId string `json:"subscriptionId"`
+	ProductId      string `json:"productId"`
+	Status         string `json:"status"`
+	Context        string `json:"context"`
+}
+
+type NotificationRenewalRequest struct {
+	UserIdentifier  string    `json:"userIdentifier"`
+	SubscriptionId  string    `json:"subscriptionId"`
+	ProductId       string    `json:"productId"`
+	Amount          float64   `json:"amount"`
+	NextRenewalDate time.Time `json:"nextRenewalDate"`
+	Status          string    `json:"status"`
+	Context         string    `json:"context"`
+	TransactionId   string    `json:"transactionId"`
+}
+
+type NotificationRefundRequest struct {
+	UserIdentifier string `json:"userIdentifier"`
+	SubscriptionId string `json:"subscriptionId"`
+	ProductId      string `json:"productId"`
+	Status         string `json:"status"`
+	Context        string `json:"context"`
 }
