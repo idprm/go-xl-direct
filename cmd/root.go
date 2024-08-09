@@ -25,6 +25,7 @@ var (
 	RMQ_USER       string = getEnv("RMQ_USER")
 	RMQ_PASS       string = getEnv("RMQ_PASS")
 	RMQ_PORT       string = getEnv("RMQ_PORT")
+	RMQ_VHOST      string = getEnv("RMQ_VHOST")
 	RMQ_URL        string = getEnv("RMQ_URL")
 	ARPU_URL_SUB   string = getEnv("ARPU_URL_SUB")
 	ARPU_URL_TRANS string = getEnv("ARPU_URL_TRANS")
@@ -136,7 +137,7 @@ func connectRedis() (*redis.Client, error) {
 func connectRabbitMq() (rmqp.AMQP, error) {
 	var rb rmqp.AMQP
 	port, _ := strconv.Atoi(RMQ_PORT)
-	rb.SetAmqpURL(RMQ_HOST, port, RMQ_USER, RMQ_PASS, "/")
+	rb.SetAmqpURL(RMQ_HOST, port, RMQ_USER, RMQ_PASS, RMQ_VHOST)
 	errConn := rb.SetUpConnectionAmqp()
 	if errConn != nil {
 		return rb, errConn

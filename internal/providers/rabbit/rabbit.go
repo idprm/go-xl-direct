@@ -10,9 +10,10 @@ import (
 )
 
 var (
-	RMQ_URL  string = utils.GetEnv("RMQ_URL")
-	RMQ_USER string = utils.GetEnv("RMQ_USER")
-	RMQ_PASS string = utils.GetEnv("RMQ_PASS")
+	RMQ_URL   string = utils.GetEnv("RMQ_URL")
+	RMQ_USER  string = utils.GetEnv("RMQ_USER")
+	RMQ_PASS  string = utils.GetEnv("RMQ_PASS")
+	RMQ_VHOST string = utils.GetEnv("RMQ_VHOST")
 )
 
 type RabbitMQ struct {
