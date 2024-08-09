@@ -1,7 +1,8 @@
 package telco
 
 import (
-	"errors"
+	"bytes"
+	"encoding/json"
 	"io"
 	"log"
 	"net/http"
@@ -11,43 +12,40 @@ import (
 	"time"
 
 	"github.com/idprm/go-xl-direct/internal/domain/entity"
+	"github.com/idprm/go-xl-direct/internal/domain/model"
 	"github.com/idprm/go-xl-direct/internal/logger"
 	"github.com/idprm/go-xl-direct/internal/utils"
 )
 
 var (
-	TELCO_URL_AUTH string = utils.GetEnv("TELCO_URL_AUTH")
-	TELCO_KEY      string = utils.GetEnv("TELCO_KEY")
-	TELCO_SECRET   string = utils.GetEnv("TELCO_SECRET")
-	TELCO_CPNAME   string = utils.GetEnv("TELCO_CPNAME")
-	TELCO_CPID     string = utils.GetEnv("TELCO_CPID")
-	TELCO_PWD      string = utils.GetEnv("TELCO_PWD")
-	TELCO_SENDER   string = utils.GetEnv("TELCO_SENDER")
+	TELCO_URL           string = utils.GetEnv("TELCO_URL")
+	TELCO_CLIENT_ID     string = utils.GetEnv("TELCO_CLIENT_ID")
+	TELCO_SECRET_SECRET string = utils.GetEnv("TELCO_SECRET_SECRET")
+	TELCO_GRANT_TYPE    string = utils.GetEnv("TELCO_GRANT_TYPE")
 )
 
 type Telco struct {
 	logger       *logger.Logger
+	session      *entity.Session
 	subscription *entity.Subscription
 	service      *entity.Service
-	content      *entity.Content
 }
 
 func NewTelco(
 	logger *logger.Logger,
+	session *entity.Session,
 	subscription *entity.Subscription,
 	service *entity.Service,
-	content *entity.Content,
 ) *Telco {
 	return &Telco{
 		logger:       logger,
+		session:      session,
 		subscription: subscription,
 		service:      service,
-		content:      content,
 	}
 }
 
 type ITelco interface {
-	Test() ([]byte, error)
 	OAuth() ([]byte, error)
 	CreateSubscription() ([]byte, error)
 	ConfirmOTP() ([]byte, error)
@@ -56,50 +54,18 @@ type ITelco interface {
 	Notification() ([]byte, error)
 }
 
-func (t *Telco) Test() ([]byte, error) {
-	params := url.Values{}
-	params.Add("client_id", "3S7QIae30ToXBghLAdoQY8V8rWnlYqiA")
-	params.Add("client_secret", "121c4kc9saaCKF9Hd7F3zesRUjOmSJs8")
-	params.Add("grant_type", "client_credentials")
-	resp, err := http.PostForm("https://staging-sdp.xlaxiata.id/dcb-nongoogle/oauth2/token",
-		params)
-	if err != nil {
-		log.Printf("Request Failed: %s", err)
-		return nil, err
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Printf("Reading body failed: %s", err)
-		return nil, err
-	}
-	// Unmarshal result
-	// post := Post{}
-	// err = json.Unmarshal(body, &post)
-	// if err != nil {
-	// 	log.Printf("Reading body failed: %s", err)
-	// 	return nil, err
-	// }
-
-	// log.Printf("Post added with ID %d", post.ID)
-	return body, nil
-}
-
 func (t *Telco) OAuth() ([]byte, error) {
-	var p = url.Values{
-		"client_id":     {"3S7QIae30ToXBghLAdoQY8V8rWnlYqiA"},
-		"client_secret": {"121c4kc9saaCKF9Hd7F3zesRUjOmSJs8"},
-		"grant_type":    {"client_credentials"},
-	}
-	// p.Add("client_id", "3S7QIae30ToXBghLAdoQY8V8rWnlYqiA")
-	// p.Add("client_secret", "121c4kc9saaCKF9Hd7F3zesRUjOmSJs8")
-	// p.Add("grant_type", "client_credentials")
+	var p = url.Values{}
 
-	req, err := http.NewRequest(http.MethodPost, "https://staging-sdp.xlaxiata.id/dcb-nongoogle/oauth2/token", strings.NewReader(p.Encode()))
+	p.Add("client_id", TELCO_CLIENT_ID)
+	p.Add("client_secret", TELCO_SECRET_SECRET)
+	p.Add("grant_type", TELCO_GRANT_TYPE)
+
+	req, err := http.NewRequest(http.MethodPost, TELCO_URL+"/oauth2/token", strings.NewReader(p.Encode()))
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
+
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(p.Encode())))
 
@@ -118,35 +84,258 @@ func (t *Telco) OAuth() ([]byte, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, errors.New(err.Error())
+		return nil, err
 	}
 
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, errors.New(err.Error())
+		return nil, err
 	}
 
 	return body, nil
 }
 
 func (t *Telco) CreateSubscription() ([]byte, error) {
-	return nil, nil
+	jsonData, err := json.Marshal(
+		&model.CreateSubscriptionRequest{
+			RequestId:      "",
+			ProductId:      "",
+			UserIdentifier: "",
+			Amount:         "",
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest(http.MethodPost, TELCO_URL+"/subscription/create", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+
+	var bearer = "Bearer " + t.session.GetAccessToken()
+	req.Header.Add("Authorization", bearer)
+	req.Header.Set("Content-Type", "application/json")
+
+	tr := &http.Transport{
+		MaxIdleConns:       30,
+		IdleConnTimeout:    30 * time.Second,
+		DisableCompression: true,
+	}
+
+	client := &http.Client{
+		Timeout:   30 * time.Second,
+		Transport: tr,
+	}
+
+	log.Println(req)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
 }
 
 func (t *Telco) ConfirmOTP() ([]byte, error) {
-	return nil, nil
+
+	urlTelco := TELCO_URL + "/subscription/{msisdn}/{productId}/otp/confirm"
+	jsonData, err := json.Marshal(
+		&model.ConfirmOTPRequest{
+			RequestId: "",
+			PIN:       "",
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest(http.MethodPost, urlTelco, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+
+	var bearer = "Bearer " + t.session.GetAccessToken()
+	req.Header.Add("Authorization", bearer)
+	req.Header.Set("Content-Type", "application/json")
+
+	tr := &http.Transport{
+		MaxIdleConns:       30,
+		IdleConnTimeout:    30 * time.Second,
+		DisableCompression: true,
+	}
+
+	client := &http.Client{
+		Timeout:   30 * time.Second,
+		Transport: tr,
+	}
+
+	log.Println(req)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
 }
 
 func (t *Telco) Refund() ([]byte, error) {
-	return nil, nil
+
+	urlTelco := TELCO_URL + "/subscription/{msisdn}/{productId}/refund"
+	jsonData, err := json.Marshal(
+		&model.RefundRequest{
+			RequestId:     "",
+			TransactionId: "",
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest(http.MethodPost, urlTelco, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+
+	var bearer = "Bearer " + t.session.GetAccessToken()
+	req.Header.Add("Authorization", bearer)
+	req.Header.Set("Content-Type", "application/json")
+
+	tr := &http.Transport{
+		MaxIdleConns:       30,
+		IdleConnTimeout:    30 * time.Second,
+		DisableCompression: true,
+	}
+
+	client := &http.Client{
+		Timeout:   30 * time.Second,
+		Transport: tr,
+	}
+
+	log.Println(req)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
 }
 
 func (t *Telco) UnsubscribeSubscription() ([]byte, error) {
-	return nil, nil
+	urlTelco := TELCO_URL + "/subscription/{msisdn}/{productId}"
+	jsonData, err := json.Marshal(
+		&model.RefundRequest{
+			RequestId:     "",
+			TransactionId: "",
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest(http.MethodDelete, urlTelco, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+
+	var bearer = "Bearer " + t.session.GetAccessToken()
+	req.Header.Add("Authorization", bearer)
+	req.Header.Set("Content-Type", "application/json")
+
+	tr := &http.Transport{
+		MaxIdleConns:       30,
+		IdleConnTimeout:    30 * time.Second,
+		DisableCompression: true,
+	}
+
+	client := &http.Client{
+		Timeout:   30 * time.Second,
+		Transport: tr,
+	}
+
+	log.Println(req)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
 }
 
 func (t *Telco) Notification() ([]byte, error) {
-	return nil, nil
+	urlTelco := TELCO_URL + "/subscription/{msisdn}/{productId}"
+	jsonData, err := json.Marshal(
+		&model.RefundRequest{
+			RequestId:     "",
+			TransactionId: "",
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest(http.MethodDelete, urlTelco, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+
+	var bearer = "Bearer " + t.session.GetAccessToken()
+	req.Header.Add("Authorization", bearer)
+	req.Header.Set("Content-Type", "application/json")
+
+	tr := &http.Transport{
+		MaxIdleConns:       30,
+		IdleConnTimeout:    30 * time.Second,
+		DisableCompression: true,
+	}
+
+	client := &http.Client{
+		Timeout:   30 * time.Second,
+		Transport: tr,
+	}
+
+	log.Println(req)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
 }

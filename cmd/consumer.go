@@ -48,6 +48,7 @@ var consumerMOCmd = &cobra.Command{
 		 * SETUP CHANNEL
 		 */
 		rmq.SetUpChannel(RMQ_EXCHANGE_TYPE, true, RMQ_MO_EXCHANGE, true, RMQ_MO_QUEUE)
+		rmq.SetUpChannel(RMQ_EXCHANGE_TYPE, true, RMQ_RENEWAL_EXCHANGE, true, RMQ_RENEWAL_QUEUE)
 		rmq.SetUpChannel(RMQ_EXCHANGE_TYPE, true, RMQ_NOTIF_EXCHANGE, true, RMQ_NOTIF_QUEUE)
 		rmq.SetUpChannel(RMQ_EXCHANGE_TYPE, true, RMQ_PB_MO_EXCHANGE, true, RMQ_PB_MO_QUEUE)
 

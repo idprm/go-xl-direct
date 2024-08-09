@@ -10,7 +10,10 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/template/html/v2"
+	"github.com/idprm/go-xl-direct/internal/domain/repository"
+	"github.com/idprm/go-xl-direct/internal/handler"
 	"github.com/idprm/go-xl-direct/internal/logger"
+	"github.com/idprm/go-xl-direct/internal/services"
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/cobra"
 	"github.com/wiliehidayat87/rmqp"
@@ -97,7 +100,22 @@ func routerUrl(db *sql.DB, rds *redis.Client, rmq rmqp.AMQP, logger *logger.Logg
 
 	r.Static("/static", path+"/"+PUBLIC_PATH)
 
-	//
+	serviceRepo := repository.NewServiceRepository(db)
+	serviceService := services.NewServiceService(serviceRepo)
+	verifyRepo := repository.NewVerifyRepository(rds)
+	verifyService := services.NewVerifyService(verifyRepo)
+
+	h := handler.NewIncomingHandler(
+		rmq,
+		logger,
+		serviceService,
+		verifyService,
+	)
+
+	r.Post("sub", h.CreateSubscription)
+	r.Post("otp", h.ConfirmOTP)
+	r.Post("notify", h.MessageOriginated)
+
 	return r
 
 }

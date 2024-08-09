@@ -16,30 +16,16 @@ jobs:
             image: idprm/xl-direct-listener-service
           - dockerfile: ./Dockerfile.mo
             image: idprm/xl-direct-mo-service
-          - dockerfile: ./Dockerfile.pback_mo
+          - dockerfile: ./Dockerfile.pback_motsel
             image: idprm/xl-direct-postback-mo-service
           - dockerfile: ./Dockerfile.pback_mt
             image: idprm/xl-direct-postback-mt-service
           - dockerfile: ./Dockerfile.pub_csv
             image: idprm/xl-direct-pub-csv-service
-          - dockerfile: ./Dockerfile.pub_renewal
-            image: idprm/xl-direct-pub-renewal-service
-          - dockerfile: ./Dockerfile.pub_retry_dp
-            image: idprm/xl-direct-pub-retry-dp-service
-          - dockerfile: ./Dockerfile.pub_retry_fp
-            image: idprm/xl-direct-pub-retry-fp-service
-          - dockerfile: ./Dockerfile.pub_retry_insuff
-            image: idprm/xl-direct-pub-retry-insuff-service
           - dockerfile: ./Dockerfile.pub_upload_csv
             image: idprm/xl-direct-pub-upload-csv-service
           - dockerfile: ./Dockerfile.renewal
             image: idprm/xl-direct-renewal-service
-          - dockerfile: ./Dockerfile.retry_dp
-            image: idprm/xl-direct-retry-dp-service
-          - dockerfile: ./Dockerfile.retry_fp
-            image: idprm/xl-direct-retry-fp-service
-          - dockerfile: ./Dockerfile.retry_insuff
-            image: idprm/xl-direct-retry-insuff-service
           - dockerfile: ./Dockerfile.notif
             image: idprm/xl-direct-notif-service
           - dockerfile: ./Dockerfile.traffic

@@ -2,7 +2,6 @@ package model
 
 import (
 	"strings"
-	"time"
 )
 
 type CampaignDirectQueryRequest struct {
@@ -185,52 +184,116 @@ func (r *ConfirmOTPRequest) GetPIN() string {
 }
 
 type RefundRequest struct {
-	Msisdn        string `json:"msisdn"`
-	ProductId     string `json:"productId"`
 	RequestId     string `json:"requestId"`
 	TransactionId string `json:"transactionId"`
 }
 
 type UnsubscribeRequest struct {
-	Msisdn    string `json:"msisdn"`
-	ProductId string `json:"productId"`
 	RequestId string `json:"requestId"`
 }
 
+type NotificationRequest struct {
+	UserIdentifier  string  `validate:"required" json:"userIdentifier"`
+	SubscriptionId  int     `validate:"required" json:"subscriptionId"`
+	ProductId       string  `validate:"required" json:"productId"`
+	Amount          float64 `validate:"required" json:"amount"`
+	StartDate       string  `json:"startDate"`
+	NextRenewalDate string  `json:"nextRenewalDate"`
+	Status          string  `validate:"required" json:"status"`
+	Context         string  `validate:"required" json:"context"`
+	TransactionId   string  `json:"transactionId"`
+}
+
+func (m *NotificationRequest) GetUserIdentifier() string {
+	return m.UserIdentifier
+}
+
+func (m *NotificationRequest) GetSubscriptionId() int {
+	return m.SubscriptionId
+}
+
+func (m *NotificationRequest) GetProductId() string {
+	return m.ProductId
+}
+
+func (m *NotificationRequest) GetAmount() float64 {
+	return m.Amount
+}
+
+func (m *NotificationRequest) GetStartDate() string {
+	return m.StartDate
+}
+
+func (m *NotificationRequest) GetNextRenewalDate() string {
+	return m.NextRenewalDate
+}
+
+func (m *NotificationRequest) GetStatus() string {
+	return m.Status
+}
+
+func (m *NotificationRequest) GetContext() string {
+	return m.Context
+}
+
+func (m *NotificationRequest) GetTransactionId() string {
+	return m.TransactionId
+}
+
+func (m *NotificationRequest) IsSubscription() bool {
+	return m.Context == "SUBSCRIPTION"
+}
+
+func (m *NotificationRequest) IsRenewal() bool {
+	return m.Context == "RENEWAL"
+}
+
+func (m *NotificationRequest) IsRefund() bool {
+	return m.Context == "REFUND"
+}
+
+func (m *NotificationRequest) IsActive() bool {
+	return m.Status == "ACTIVE"
+}
+
+func (m *NotificationRequest) IsCancelled() bool {
+	return m.Status == "CANCELLED"
+}
+
 type NotificationSubcriptionRequest struct {
-	UserIdentifier  string    `json:"userIdentifier"`
-	SubscriptionId  string    `json:"subscriptionId"`
-	ProductId       string    `json:"productId"`
-	Amount          float64   `json:"amount"`
-	StartDate       time.Time `json:"startDate"`
-	NextRenewalDate time.Time `json:"nextRenewalDate"`
-	Status          string    `json:"status"`
-	Context         string    `json:"context"`
-	TransactionId   string    `json:"transactionId"`
+	UserIdentifier  string  `json:"userIdentifier"`
+	SubscriptionId  int     `json:"subscriptionId"`
+	ProductId       string  `json:"productId"`
+	Amount          float64 `json:"amount"`
+	StartDate       string  `json:"startDate"`
+	NextRenewalDate string  `json:"nextRenewalDate"`
+	Status          string  `json:"status"`
+	Context         string  `json:"context"`
+	TransactionId   string  `json:"transactionId"`
 }
 
 type NotificationUnSubcriptionRequest struct {
 	UserIdentifier string `json:"userIdentifier"`
-	SubscriptionId string `json:"subscriptionId"`
+	SubscriptionId int    `json:"subscriptionId"`
 	ProductId      string `json:"productId"`
 	Status         string `json:"status"`
 	Context        string `json:"context"`
 }
 
 type NotificationRenewalRequest struct {
-	UserIdentifier  string    `json:"userIdentifier"`
-	SubscriptionId  string    `json:"subscriptionId"`
-	ProductId       string    `json:"productId"`
-	Amount          float64   `json:"amount"`
-	NextRenewalDate time.Time `json:"nextRenewalDate"`
-	Status          string    `json:"status"`
-	Context         string    `json:"context"`
-	TransactionId   string    `json:"transactionId"`
+	UserIdentifier  string  `json:"userIdentifier"`
+	SubscriptionId  int     `json:"subscriptionId"`
+	ProductId       string  `json:"productId"`
+	Amount          float64 `json:"amount"`
+	NextRenewalDate string  `json:"nextRenewalDate"`
+	Status          string  `json:"status"`
+	Context         string  `json:"context"`
+	TransactionId   string  `json:"transactionId"`
 }
 
 type NotificationRefundRequest struct {
 	UserIdentifier string `json:"userIdentifier"`
-	SubscriptionId string `json:"subscriptionId"`
+	SubscriptionId int    `json:"subscriptionId"`
 	ProductId      string `json:"productId"`
 	Status         string `json:"status"`
 	Context        string `json:"context"`

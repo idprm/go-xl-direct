@@ -13,7 +13,6 @@ CREATE TABLE IF NOT EXISTS "services" (
   "sid_mt" varchar(35) NOT NULL,
   "renewal_day" int DEFAULT 0,
   "trial_day" int DEFAULT 0,
-  "is_content_sequence" bool DEFAULT false,
   "url_telco" varchar(85),
   "url_portal" varchar(85),
   "url_callback" varchar(85),
