@@ -16,7 +16,7 @@ jobs:
             image: idprm/xl-direct-listener-service
           - dockerfile: ./Dockerfile.mo
             image: idprm/xl-direct-mo-service
-          - dockerfile: ./Dockerfile.pback_motsel
+          - dockerfile: ./Dockerfile.pback_mo
             image: idprm/xl-direct-postback-mo-service
           - dockerfile: ./Dockerfile.pback_mt
             image: idprm/xl-direct-postback-mt-service
