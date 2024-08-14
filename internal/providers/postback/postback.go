@@ -13,10 +13,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var (
-	TELCO_SENDER string = utils.GetEnv("TELCO_SENDER")
-)
-
 type Postback struct {
 	logger       *logger.Logger
 	subscription *entity.Subscription
