@@ -14,6 +14,12 @@ import (
 	"github.com/wiliehidayat87/rmqp"
 )
 
+const (
+	MO_REG   = "REG"
+	MO_UNREG = "UNREG"
+	MO_OFF   = "OFF"
+)
+
 type IncomingHandler struct {
 	rmq                 rmqp.AMQP
 	logger              *logger.Logger
@@ -45,30 +51,28 @@ var (
 )
 
 const (
-	RMQ_DATA_TYPE          string = "application/json"
-	RMQ_MO_EXCHANGE        string = "E_MO"
-	RMQ_MO_QUEUE           string = "Q_MO"
-	RMQ_RENEWAL_EXCHANGE   string = "E_RENEWAL"
-	RMQ_RENEWAL_QUEUE      string = "Q_RENEWAL"
-	RMQ_NOTIF_EXCHANGE     string = "E_NOTIF"
-	RMQ_NOTIF_QUEUE        string = "Q_NOTIF"
-	RMQ_PB_EXCHANGE        string = "E_POSTBACK"
-	RMQ_PB_QUEUE           string = "Q_POSTBACK"
-	RMQ_TRAFFIC_EXCHANGE   string = "E_TRAFFIC"
-	RMQ_TRAFFIC_QUEUE      string = "Q_TRAFFIC"
-	RMQ_DAILYPUSH_EXCHANGE string = "E_BQ_DAILYPUSH"
-	RMQ_DAILYPUSH_QUEUE    string = "Q_BQ_DAILYPUSH"
-	MT_FIRSTPUSH           string = "FIRSTPUSH"
-	MT_RENEWAL             string = "RENEWAL"
-	MT_UNSUB               string = "UNSUB"
-	STATUS_SUCCESS         string = "SUCCESS"
-	STATUS_FAILED          string = "FAILED"
-	SUBJECT_FIRSTPUSH      string = "FIRSTPUSH"
-	SUBJECT_DAILYPUSH      string = "DAILYPUSH"
-	SUBJECT_RENEWAL        string = "RENEWAL"
-	SUBJECT_UNSUB          string = "UNSUB"
-	SUBJECT_RETRY          string = "RETRY"
-	SUBJECT_PURGE          string = "PURGE"
+	RMQ_DATA_TYPE        string = "application/json"
+	RMQ_MO_EXCHANGE      string = "E_MO"
+	RMQ_MO_QUEUE         string = "Q_MO"
+	RMQ_RENEWAL_EXCHANGE string = "E_RENEWAL"
+	RMQ_RENEWAL_QUEUE    string = "Q_RENEWAL"
+	RMQ_NOTIF_EXCHANGE   string = "E_NOTIF"
+	RMQ_NOTIF_QUEUE      string = "Q_NOTIF"
+	RMQ_PB_MO_EXCHANGE   string = "E_POSTBACK_MO"
+	RMQ_PB_MO_QUEUE      string = "Q_POSTBACK_MO"
+	RMQ_PB_MT_EXCHANGE   string = "E_POSTBACK_MT"
+	RMQ_PB_MT_QUEUE      string = "Q_POSTBACK_MT"
+	MT_FIRSTPUSH         string = "FIRSTPUSH"
+	MT_RENEWAL           string = "RENEWAL"
+	MT_UNSUB             string = "UNSUB"
+	STATUS_SUCCESS       string = "SUCCESS"
+	STATUS_FAILED        string = "FAILED"
+	SUBJECT_FIRSTPUSH    string = "FIRSTPUSH"
+	SUBJECT_DAILYPUSH    string = "DAILYPUSH"
+	SUBJECT_RENEWAL      string = "RENEWAL"
+	SUBJECT_UNSUB        string = "UNSUB"
+	SUBJECT_RETRY        string = "RETRY"
+	SUBJECT_PURGE        string = "PURGE"
 )
 
 var validate = validator.New()

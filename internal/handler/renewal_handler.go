@@ -15,7 +15,6 @@ import (
 type RenewalHandler struct {
 	rmq                 rmqp.AMQP
 	logger              *logger.Logger
-	sub                 *entity.Subscription
 	serviceService      services.IServiceService
 	subscriptionService services.ISubscriptionService
 	transactionService  services.ITransactionService
@@ -25,7 +24,6 @@ type RenewalHandler struct {
 func NewRenewalHandler(
 	rmq rmqp.AMQP,
 	logger *logger.Logger,
-	sub *entity.Subscription,
 	serviceService services.IServiceService,
 	subscriptionService services.ISubscriptionService,
 	transactionService services.ITransactionService,
@@ -34,7 +32,6 @@ func NewRenewalHandler(
 	return &RenewalHandler{
 		rmq:                 rmq,
 		logger:              logger,
-		sub:                 sub,
 		serviceService:      serviceService,
 		subscriptionService: subscriptionService,
 		transactionService:  transactionService,
@@ -43,8 +40,14 @@ func NewRenewalHandler(
 }
 
 func (h *RenewalHandler) Dailypush() {
+
+	service, err := h.serviceService.GetServiceByProductId(h.req.ProductId)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
 	// check if active sub
-	if h.subscriptionService.IsActiveSubscription(h.sub.GetServiceId(), h.sub.GetMsisdn()) {
+	if h.subscriptionService.IsActiveSubscription(service.GetId(), h.req.GetUserIdentifier()) {
 
 		service, err := h.serviceService.GetServiceByCode(h.req.GetProductId())
 		if err != nil {
@@ -52,49 +55,51 @@ func (h *RenewalHandler) Dailypush() {
 		}
 
 		if h.req.IsActive() {
-			h.subscriptionService.UpdateSuccess(
-				&entity.Subscription{
-					ServiceID:          h.sub.GetServiceId(),
-					Msisdn:             h.sub.GetMsisdn(),
-					LatestTrxId:        "",
-					LatestSubject:      "",
-					LatestPIN:          "",
-					Amount:             service.GetPrice(),
-					RenewalAt:          time.Now(),
-					ChargeAt:           time.Now(),
-					Success:            1,
-					IsRetry:            false,
-					TotalRenewal:       1,
-					TotalAmountRenewal: service.GetPrice(),
-					LatestPayload:      "-",
-				},
-			)
+			subSuccess := &entity.Subscription{
+				ServiceID:          service.GetId(),
+				Msisdn:             h.req.GetUserIdentifier(),
+				LatestTrxId:        h.req.GetTransactionId(),
+				LatestSubject:      SUBJECT_RENEWAL,
+				LatestStatus:       STATUS_SUCCESS,
+				LatestPIN:          "",
+				Amount:             service.GetPrice(),
+				RenewalAt:          time.Now().AddDate(0, 0, service.GetRenewalDay()),
+				ChargeAt:           time.Now(),
+				Success:            1,
+				IsRetry:            false,
+				TotalRenewal:       1,
+				TotalAmountRenewal: service.GetPrice(),
+				LatestPayload:      "-",
+			}
 
-			h.transactionService.SaveTransaction(
-				&entity.Transaction{
-					ServiceID:      h.sub.GetServiceId(),
-					Msisdn:         h.sub.GetMsisdn(),
-					Channel:        "",
-					Adnet:          "",
-					Keyword:        "",
-					Amount:         service.GetPrice(),
-					PIN:            "-",
-					Status:         "",
-					StatusCode:     "",
-					StatusDetail:   "",
-					Subject:        "",
-					Payload:        "",
-					CampKeyword:    "",
-					CampSubKeyword: "",
-					IpAddress:      "",
-				},
-			)
+			h.subscriptionService.UpdateSuccess(subSuccess)
+
+			transSuccess := &entity.Transaction{
+				TxID:           h.req.GetTransactionId(),
+				ServiceID:      service.GetId(),
+				Msisdn:         h.req.GetUserIdentifier(),
+				Channel:        "",
+				Adnet:          "",
+				Keyword:        "",
+				Amount:         service.GetPrice(),
+				PIN:            "",
+				Status:         STATUS_SUCCESS,
+				StatusCode:     "",
+				StatusDetail:   "",
+				Subject:        SUBJECT_RENEWAL,
+				Payload:        "",
+				CampKeyword:    "",
+				CampSubKeyword: "",
+				IpAddress:      "",
+			}
+
+			h.transactionService.SaveTransaction(transSuccess)
 
 			// insert to rabbitmq
 			jsonData, _ := json.Marshal(
 				&entity.NotifParamsRequest{
 					Service:      service,
-					Subscription: h.sub,
+					Subscription: subSuccess,
 					Action:       "RENEWAL",
 					Pin:          "",
 				},
@@ -103,98 +108,69 @@ func (h *RenewalHandler) Dailypush() {
 				RMQ_NOTIF_EXCHANGE,
 				RMQ_NOTIF_QUEUE,
 				RMQ_DATA_TYPE,
-				"", string(jsonData),
+				"",
+				string(jsonData),
 			)
 		}
 
 		if h.req.IsCancelled() {
 
-			h.subscriptionService.UpdateFailed(
-				&entity.Subscription{
-					ServiceID:     h.sub.GetServiceId(),
-					Msisdn:        h.sub.GetMsisdn(),
-					LatestTrxId:   "",
-					LatestSubject: "",
-					LatestStatus:  "",
-					RenewalAt:     time.Now(),
-					RetryAt:       time.Now(),
-					Failed:        1,
-					IsRetry:       true,
-					LatestPayload: "",
-				},
-			)
+			subFailed := &entity.Subscription{
+				ServiceID:     service.GetId(),
+				Msisdn:        h.req.GetUserIdentifier(),
+				LatestTrxId:   h.req.GetTransactionId(),
+				LatestSubject: SUBJECT_RENEWAL,
+				LatestStatus:  STATUS_FAILED,
+				RenewalAt:     time.Now().AddDate(0, 0, 1),
+				RetryAt:       time.Now(),
+				Failed:        1,
+				IsRetry:       true,
+				LatestPayload: "",
+			}
+			h.subscriptionService.UpdateFailed(subFailed)
 
-			h.transactionService.SaveTransaction(
-				&entity.Transaction{
-					ServiceID:      h.sub.GetServiceId(),
-					Msisdn:         h.sub.GetMsisdn(),
-					Channel:        "",
-					Adnet:          "",
-					Keyword:        "",
-					Status:         "",
-					StatusCode:     "",
-					StatusDetail:   "",
-					Subject:        "",
-					Payload:        "",
-					CampKeyword:    "",
-					CampSubKeyword: "",
-					IpAddress:      "",
-				},
-			)
+			transFailed := &entity.Transaction{
+				TxID:           h.req.GetTransactionId(),
+				ServiceID:      service.GetId(),
+				Msisdn:         h.req.GetUserIdentifier(),
+				Channel:        "",
+				Adnet:          "",
+				Keyword:        "",
+				Status:         STATUS_FAILED,
+				StatusCode:     "",
+				StatusDetail:   "",
+				Subject:        SUBJECT_RENEWAL,
+				Payload:        "",
+				CampKeyword:    "",
+				CampSubKeyword: "",
+				IpAddress:      "",
+			}
+			h.transactionService.SaveTransaction(transFailed)
 		}
 
 		jsonDataPB, _ := json.Marshal(
 			&entity.PostbackParamsRequest{
 				Subscription: &entity.Subscription{
-					LatestTrxId:    "",
-					ServiceID:      h.sub.GetServiceId(),
-					Msisdn:         h.sub.GetMsisdn(),
-					LatestKeyword:  h.sub.GetLatestKeyword(),
+					LatestTrxId:    h.req.GetTransactionId(),
+					ServiceID:      service.GetId(),
+					Msisdn:         h.req.GetUserIdentifier(),
+					LatestKeyword:  "",
 					LatestSubject:  SUBJECT_RENEWAL,
 					LatestPayload:  "",
-					CampKeyword:    h.sub.GetCampKeyword(),
-					CampSubKeyword: h.sub.GetCampSubKeyword(),
+					CampKeyword:    "",
+					CampSubKeyword: "",
 				},
 				Service:   service,
 				Action:    "MT_DAILYPUSH",
 				Status:    "",
-				AffSub:    h.sub.GetAffSub(),
+				AffSub:    "",
 				IsSuccess: false,
 			},
 		)
 		h.rmq.IntegratePublish(
-			RMQ_PB_EXCHANGE,
-			RMQ_PB_QUEUE,
+			RMQ_PB_MT_EXCHANGE,
+			RMQ_PB_MT_QUEUE,
 			RMQ_DATA_TYPE, "", string(jsonDataPB),
 		)
-
-		jsonDataDP, _ := json.Marshal(
-			&entity.DailypushBodyRequest{
-				TxId:           "",
-				SubscriptionId: h.sub.GetId(),
-				ServiceId:      h.sub.GetServiceId(),
-				Msisdn:         h.sub.GetMsisdn(),
-				Channel:        h.sub.GetChannel(),
-				CampKeyword:    h.sub.GetCampKeyword(),
-				CampSubKeyword: h.sub.GetCampSubKeyword(),
-				Adnet:          h.sub.GetAdnet(),
-				PubID:          h.sub.GetPubId(),
-				AffSub:         h.sub.GetPubId(),
-				Subject:        "",
-				StatusCode:     "",
-				StatusDetail:   "",
-				IsCharge:       false,
-				IpAddress:      h.sub.GetIpAddress(),
-				Action:         SUBJECT_RENEWAL,
-			},
-		)
-
-		h.rmq.IntegratePublish(
-			RMQ_DAILYPUSH_EXCHANGE,
-			RMQ_DAILYPUSH_QUEUE,
-			RMQ_DATA_TYPE,
-			"", string(jsonDataDP),
-		)
 	}
-
 }

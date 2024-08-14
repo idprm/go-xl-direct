@@ -86,11 +86,17 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 		if req.IsCancelled() {
 			h.Unsub()
 		}
-
 	}
 
 	if req.IsRenewal() {
-		h.Renewal()
+
+		if req.IsActive() {
+			h.Renewal()
+		}
+
+		if req.IsCancelled() {
+			h.Unsub()
+		}
 	}
 
 	if req.IsRefund() {
@@ -115,7 +121,6 @@ func (p *Processor) Renewal(wg *sync.WaitGroup, message []byte) {
 	handler.NewRenewalHandler(
 		p.rmq,
 		p.logger,
-		&entity.Subscription{},
 		serviceService,
 		subscriptionService,
 		transactionService,
