@@ -163,8 +163,8 @@ func (h *RenewalHandler) Dailypush() {
 			},
 		)
 		h.rmq.IntegratePublish(
-			RMQ_PB_MT_EXCHANGE,
-			RMQ_PB_MT_QUEUE,
+			RMQ_PB_EXCHANGE,
+			RMQ_PB_QUEUE,
 			RMQ_DATA_TYPE, "", string(jsonDataPB),
 		)
 

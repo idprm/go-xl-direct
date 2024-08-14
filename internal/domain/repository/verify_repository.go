@@ -26,15 +26,15 @@ func NewVerifyRepository(rds *redis.Client) *VerifyRepository {
 
 func (r *VerifyRepository) Set(t *entity.Verify) error {
 	verify, _ := json.Marshal(t)
-	err := r.rds.Set(context.TODO(), t.GetToken(), string(verify), 24*time.Hour).Err()
+	err := r.rds.Set(context.TODO(), t.GetMsisdn(), string(verify), 1*time.Minute).Err()
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *VerifyRepository) Get(token string) (*entity.Verify, error) {
-	val, err := r.rds.Get(context.TODO(), token).Result()
+func (r *VerifyRepository) Get(msisdn string) (*entity.Verify, error) {
+	val, err := r.rds.Get(context.TODO(), msisdn).Result()
 	if err != nil {
 		return nil, err
 	}

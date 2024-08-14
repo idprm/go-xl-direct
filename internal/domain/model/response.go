@@ -36,3 +36,11 @@ func (r *TelcoResponse) GetTransactionId() string {
 func (r *TelcoResponse) GetStatus() string {
 	return r.Status
 }
+
+func (r *TelcoResponse) IsSuccess() bool {
+	return r.GetStatus() == "SUCCESS"
+}
+
+func (r *TelcoResponse) IsInvalid() bool {
+	return r.GetStatus() == "INVALID_OR_EXPIRED_PIN"
+}

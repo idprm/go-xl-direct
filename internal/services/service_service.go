@@ -11,8 +11,10 @@ type ServiceService struct {
 
 type IServiceService interface {
 	IsServiceByCode(string) bool
+	IsServiceByProductId(string) bool
 	GetServiceId(int) (*entity.Service, error)
 	GetServiceByCode(string) (*entity.Service, error)
+	GetServiceByProductId(string) (*entity.Service, error)
 }
 
 func NewServiceService(serviceRepo repository.IServiceRepository) *ServiceService {
@@ -26,10 +28,19 @@ func (s *ServiceService) IsServiceByCode(code string) bool {
 	return count > 0
 }
 
+func (s *ServiceService) IsServiceByProductId(productId string) bool {
+	count, _ := s.serviceRepo.CountByProductId(productId)
+	return count > 0
+}
+
 func (s *ServiceService) GetServiceId(id int) (*entity.Service, error) {
 	return s.serviceRepo.GetById(id)
 }
 
 func (s *ServiceService) GetServiceByCode(code string) (*entity.Service, error) {
 	return s.serviceRepo.GetByCode(code)
+}
+
+func (s *ServiceService) GetServiceByProductId(productId string) (*entity.Service, error) {
+	return s.serviceRepo.GetByProductId(productId)
 }

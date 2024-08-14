@@ -7,7 +7,7 @@ type Service struct {
 	Name                string  `json:"name"`
 	Package             string  `json:"package"`
 	Price               float64 `json:"price"`
-	ProgramId           string  `json:"program_id"`
+	ProductId           string  `json:"product_id"`
 	SidOptIn            string  `json:"sid_optin"`
 	SidMt               string  `json:"sid_mt"`
 	RenewalDay          int     `json:"renewal_day"`
@@ -47,8 +47,8 @@ func (s *Service) GetPrice() float64 {
 	return s.Price
 }
 
-func (s *Service) GetProgramId() string {
-	return s.ProgramId
+func (s *Service) GetProductId() string {
+	return s.ProductId
 }
 
 func (s *Service) GetSidOptIn() string {

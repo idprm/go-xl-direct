@@ -102,6 +102,8 @@ func routerUrl(db *sql.DB, rds *redis.Client, rmq rmqp.AMQP, logger *logger.Logg
 
 	serviceRepo := repository.NewServiceRepository(db)
 	serviceService := services.NewServiceService(serviceRepo)
+	subscriptionRepo := repository.NewSubscriptionRepository(db)
+	subscriptionService := services.NewSubscriptionService(subscriptionRepo)
 	verifyRepo := repository.NewVerifyRepository(rds)
 	verifyService := services.NewVerifyService(verifyRepo)
 
@@ -109,11 +111,16 @@ func routerUrl(db *sql.DB, rds *redis.Client, rmq rmqp.AMQP, logger *logger.Logg
 		rmq,
 		logger,
 		serviceService,
+		subscriptionService,
 		verifyService,
 	)
 
-	r.Post("sub", h.CreateSubscription)
-	r.Post("otp", h.ConfirmOTP)
+	v1 := r.Group("v1")
+	v1.Post("sub", h.CreateSubscription)
+	v1.Post("otp", h.ConfirmOTP)
+	v1.Post("refund", h.Refund)
+	v1.Post("unsub", h.Unsubscribe)
+
 	r.Post("notify", h.MessageOriginated)
 
 	return r

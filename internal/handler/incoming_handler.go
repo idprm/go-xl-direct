@@ -8,29 +8,33 @@ import (
 	"github.com/idprm/go-xl-direct/internal/domain/entity"
 	"github.com/idprm/go-xl-direct/internal/domain/model"
 	"github.com/idprm/go-xl-direct/internal/logger"
+	"github.com/idprm/go-xl-direct/internal/providers/telco"
 	"github.com/idprm/go-xl-direct/internal/services"
 	"github.com/idprm/go-xl-direct/internal/utils"
 	"github.com/wiliehidayat87/rmqp"
 )
 
 type IncomingHandler struct {
-	rmq            rmqp.AMQP
-	logger         *logger.Logger
-	serviceService services.IServiceService
-	verifyService  services.IVerifyService
+	rmq                 rmqp.AMQP
+	logger              *logger.Logger
+	serviceService      services.IServiceService
+	subscriptionService services.ISubscriptionService
+	verifyService       services.IVerifyService
 }
 
 func NewIncomingHandler(
 	rmq rmqp.AMQP,
 	logger *logger.Logger,
 	serviceService services.IServiceService,
+	subscriptionService services.ISubscriptionService,
 	verifyService services.IVerifyService,
 ) *IncomingHandler {
 	return &IncomingHandler{
-		rmq:            rmq,
-		logger:         logger,
-		serviceService: serviceService,
-		verifyService:  verifyService,
+		rmq:                 rmq,
+		logger:              logger,
+		serviceService:      serviceService,
+		subscriptionService: subscriptionService,
+		verifyService:       verifyService,
 	}
 }
 
@@ -48,10 +52,8 @@ const (
 	RMQ_RENEWAL_QUEUE      string = "Q_RENEWAL"
 	RMQ_NOTIF_EXCHANGE     string = "E_NOTIF"
 	RMQ_NOTIF_QUEUE        string = "Q_NOTIF"
-	RMQ_PB_MO_EXCHANGE     string = "E_POSTBACK_MO"
-	RMQ_PB_MO_QUEUE        string = "Q_POSTBACK_MO"
-	RMQ_PB_MT_EXCHANGE     string = "E_POSTBACK_MT"
-	RMQ_PB_MT_QUEUE        string = "Q_POSTBACK_MT"
+	RMQ_PB_EXCHANGE        string = "E_POSTBACK"
+	RMQ_PB_QUEUE           string = "Q_POSTBACK"
 	RMQ_TRAFFIC_EXCHANGE   string = "E_TRAFFIC"
 	RMQ_TRAFFIC_QUEUE      string = "Q_TRAFFIC"
 	RMQ_DAILYPUSH_EXCHANGE string = "E_BQ_DAILYPUSH"
@@ -111,7 +113,7 @@ func (h *IncomingHandler) MessageOriginated(c *fiber.Ctx) error {
 		)
 	}
 
-	if !h.serviceService.IsServiceByCode(req.GetProductId()) {
+	if !h.serviceService.IsServiceByProductId(req.GetProductId()) {
 		return c.Status(fiber.StatusNotFound).JSON(
 			&model.WebResponse{
 				Error:      true,
@@ -148,21 +150,379 @@ func (h *IncomingHandler) MessageOriginated(c *fiber.Ctx) error {
 }
 
 func (h *IncomingHandler) CreateSubscription(c *fiber.Ctx) error {
-	return c.Status(fiber.StatusOK).JSON(
+
+	req := new(model.WebSubRequest)
+
+	err := c.BodyParser(req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusBadRequest,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	if !h.serviceService.IsServiceByCode(req.GetService()) {
+		return c.Status(fiber.StatusNotFound).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusNotFound,
+				Message:    "service_unavailable",
+			},
+		)
+	}
+
+	service, err := h.serviceService.GetServiceByCode(req.GetService())
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusBadGateway,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	if c.Get("Cf-Connecting-Ip") != "" {
+		req.SetIpAddress(c.Get("Cf-Connecting-Ip"))
+	} else {
+		req.SetIpAddress(c.Get("X-Forwarded-For"))
+	}
+
+	verify := &entity.Verify{
+		Msisdn:    req.GetMsisdn(),
+		Service:   service,
+		IpAddress: req.IpAddress,
+	}
+
+	t := telco.NewTelco(
+		h.logger,
+		service,
+		&entity.Subscription{},
+		&entity.Session{},
+		verify,
+	)
+
+	mt, err := t.CreateSubscription()
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusBadGateway,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	var resp model.TelcoResponse
+	json.Unmarshal(mt, &resp)
+
+	if resp.IsSuccess() {
+
+		verify.SetTrxId(resp.GetTransactionId())
+		h.verifyService.Set(verify)
+
+		return c.Status(fiber.StatusOK).JSON(
+			&model.WebResponse{
+				Error:      false,
+				StatusCode: fiber.StatusOK,
+				Message:    resp.GetStatus(),
+			},
+		)
+	}
+
+	return c.Status(fiber.StatusBadGateway).JSON(
 		&model.WebResponse{
-			Error:      false,
-			StatusCode: fiber.StatusOK,
-			Message:    "Successful",
+			Error:      true,
+			StatusCode: fiber.StatusBadGateway,
+			Message:    "error_bad_gateway",
 		},
 	)
 }
 
 func (h *IncomingHandler) ConfirmOTP(c *fiber.Ctx) error {
+
+	req := new(model.WebOTPRequest)
+
+	err := c.BodyParser(req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusBadRequest,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	if !h.serviceService.IsServiceByCode(req.GetService()) {
+		return c.Status(fiber.StatusNotFound).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusNotFound,
+				Message:    "service_unavailable",
+			},
+		)
+	}
+
+	service, err := h.serviceService.GetServiceByCode(req.GetService())
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusBadGateway,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	verify, err := h.verifyService.Get(req.GetMsisdn())
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusBadGateway,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	t := telco.NewTelco(
+		h.logger,
+		service,
+		&entity.Subscription{},
+		&entity.Session{},
+		verify,
+	)
+
+	mt, err := t.ConfirmOTP(req.GetPin())
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusBadGateway,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	var resp model.TelcoResponse
+	json.Unmarshal(mt, &resp)
+
+	if !resp.IsSuccess() {
+		return c.Status(fiber.StatusOK).JSON(
+			&model.WebResponse{
+				Error:      false,
+				StatusCode: fiber.StatusOK,
+				Message:    resp.GetStatus(),
+			},
+		)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(
+		&model.WebResponse{
+			Error:      true,
+			StatusCode: fiber.StatusOK,
+			Message:    resp.GetStatus(),
+		},
+	)
+}
+
+func (h *IncomingHandler) Refund(c *fiber.Ctx) error {
+
+	req := new(model.WebSubRequest)
+
+	err := c.BodyParser(req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusBadRequest,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	if !h.serviceService.IsServiceByCode(req.GetService()) {
+		return c.Status(fiber.StatusNotFound).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusNotFound,
+				Message:    "service_unavailable",
+			},
+		)
+	}
+
+	service, err := h.serviceService.GetServiceByCode(req.GetService())
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusBadGateway,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	if !h.subscriptionService.IsActiveSubscription(service.GetId(), req.GetMsisdn()) {
+		return c.Status(fiber.StatusNotFound).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusNotFound,
+				Message:    "msisdn_not_found",
+			},
+		)
+	}
+
+	subscription, err := h.subscriptionService.SelectSubscription(service.GetId(), req.GetMsisdn())
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusBadGateway,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	t := telco.NewTelco(
+		h.logger,
+		service,
+		subscription,
+		&entity.Session{},
+		&entity.Verify{},
+	)
+
+	mt, err := t.UnsubscribeSubscription()
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusBadGateway,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	var resp model.TelcoResponse
+	json.Unmarshal(mt, &resp)
+
+	if !resp.IsSuccess() {
+		return c.Status(fiber.StatusOK).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusOK,
+				Message:    resp.GetStatus(),
+			},
+		)
+	}
+
 	return c.Status(fiber.StatusOK).JSON(
 		&model.WebResponse{
 			Error:      false,
 			StatusCode: fiber.StatusOK,
-			Message:    "Successful",
+			Message:    resp.GetStatus(),
+		},
+	)
+
+}
+
+func (h *IncomingHandler) Unsubscribe(c *fiber.Ctx) error {
+
+	req := new(model.WebSubRequest)
+
+	err := c.BodyParser(req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusBadRequest,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	if !h.serviceService.IsServiceByCode(req.GetService()) {
+		return c.Status(fiber.StatusNotFound).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusNotFound,
+				Message:    "service_unavailable",
+			},
+		)
+	}
+
+	service, err := h.serviceService.GetServiceByCode(req.GetService())
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusBadGateway,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	if !h.subscriptionService.IsActiveSubscription(service.GetId(), req.GetMsisdn()) {
+		return c.Status(fiber.StatusNotFound).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusNotFound,
+				Message:    "msisdn_not_found_or_already_unsub",
+			},
+		)
+	}
+
+	subscription, err := h.subscriptionService.SelectSubscription(service.GetId(), req.GetMsisdn())
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusBadGateway,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	t := telco.NewTelco(
+		h.logger,
+		service,
+		subscription,
+		&entity.Session{},
+		&entity.Verify{},
+	)
+
+	mt, err := t.UnsubscribeSubscription()
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusBadGateway,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	var resp model.TelcoResponse
+	json.Unmarshal(mt, &resp)
+
+	if !resp.IsSuccess() {
+		return c.Status(fiber.StatusOK).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusOK,
+				Message:    resp.GetStatus(),
+			},
+		)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(
+		&model.WebResponse{
+			Error:      false,
+			StatusCode: fiber.StatusOK,
+			Message:    resp.GetStatus(),
 		},
 	)
 }

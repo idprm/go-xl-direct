@@ -183,13 +183,33 @@ func (r *ConfirmOTPRequest) GetPIN() string {
 	return r.PIN
 }
 
+func (r *ConfirmOTPRequest) SetRequestId(val string) {
+	r.RequestId = val
+}
+
+func (r *ConfirmOTPRequest) SetPIN(val string) {
+	r.PIN = val
+}
+
 type RefundRequest struct {
 	RequestId     string `json:"requestId"`
 	TransactionId string `json:"transactionId"`
 }
 
+func (r *RefundRequest) SetRequestId(val string) {
+	r.RequestId = val
+}
+
+func (r *RefundRequest) SetTransactionId(val string) {
+	r.TransactionId = val
+}
+
 type UnsubscribeRequest struct {
 	RequestId string `json:"requestId"`
+}
+
+func (r *UnsubscribeRequest) SetRequestId(val string) {
+	r.RequestId = val
 }
 
 type NotificationRequest struct {
@@ -297,4 +317,40 @@ type NotificationRefundRequest struct {
 	ProductId      string `json:"productId"`
 	Status         string `json:"status"`
 	Context        string `json:"context"`
+}
+
+type WebSubRequest struct {
+	Msisdn    string `json:"msisdn"`
+	Service   string `json:"service"`
+	IpAddress string `json:"ip_address"`
+}
+
+func (r *WebSubRequest) SetIpAddress(val string) {
+	r.IpAddress = val
+}
+
+func (r *WebSubRequest) GetMsisdn() string {
+	return r.Msisdn
+}
+
+func (r *WebSubRequest) GetService() string {
+	return r.Service
+}
+
+type WebOTPRequest struct {
+	Msisdn  string `json:"msisdn"`
+	Service string `json:"service"`
+	Pin     string `json:"pin"`
+}
+
+func (r *WebOTPRequest) GetMsisdn() string {
+	return r.Msisdn
+}
+
+func (r *WebOTPRequest) GetService() string {
+	return r.Service
+}
+
+func (r *WebOTPRequest) GetPin() string {
+	return r.Pin
 }

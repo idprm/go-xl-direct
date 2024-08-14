@@ -26,29 +26,32 @@ var (
 
 type Telco struct {
 	logger       *logger.Logger
-	session      *entity.Session
-	subscription *entity.Subscription
 	service      *entity.Service
+	subscription *entity.Subscription
+	session      *entity.Session
+	verify       *entity.Verify
 }
 
 func NewTelco(
 	logger *logger.Logger,
-	session *entity.Session,
-	subscription *entity.Subscription,
 	service *entity.Service,
+	subscription *entity.Subscription,
+	session *entity.Session,
+	verify *entity.Verify,
 ) *Telco {
 	return &Telco{
 		logger:       logger,
-		session:      session,
-		subscription: subscription,
 		service:      service,
+		subscription: subscription,
+		session:      session,
+		verify:       verify,
 	}
 }
 
 type ITelco interface {
 	OAuth() ([]byte, error)
 	CreateSubscription() ([]byte, error)
-	ConfirmOTP() ([]byte, error)
+	ConfirmOTP(string) ([]byte, error)
 	Refund() ([]byte, error)
 	UnsubscribeSubscription() ([]byte, error)
 	Notification() ([]byte, error)
@@ -98,12 +101,14 @@ func (t *Telco) OAuth() ([]byte, error) {
 }
 
 func (t *Telco) CreateSubscription() ([]byte, error) {
+	trxId := utils.GenerateTrxId()
+
 	jsonData, err := json.Marshal(
 		&model.CreateSubscriptionRequest{
-			RequestId:      "",
-			ProductId:      "",
-			UserIdentifier: "",
-			Amount:         "",
+			RequestId:      trxId,
+			ProductId:      t.service.GetProductId(),
+			UserIdentifier: t.verify.GetMsisdn(),
+			Amount:         strconv.FormatFloat(t.service.GetPrice(), 'f', 0, 64),
 		},
 	)
 	if err != nil {
@@ -146,13 +151,14 @@ func (t *Telco) CreateSubscription() ([]byte, error) {
 	return body, nil
 }
 
-func (t *Telco) ConfirmOTP() ([]byte, error) {
+func (t *Telco) ConfirmOTP(pin string) ([]byte, error) {
+	trxId := utils.GenerateTrxId()
 
-	urlTelco := TELCO_URL + "/subscription/{msisdn}/{productId}/otp/confirm"
+	urlTelco := TELCO_URL + "/subscription/" + t.verify.GetMsisdn() + "/" + t.service.GetProductId() + "/otp/confirm"
 	jsonData, err := json.Marshal(
 		&model.ConfirmOTPRequest{
-			RequestId: "",
-			PIN:       "",
+			RequestId: trxId,
+			PIN:       pin,
 		},
 	)
 	if err != nil {
@@ -196,11 +202,12 @@ func (t *Telco) ConfirmOTP() ([]byte, error) {
 }
 
 func (t *Telco) Refund() ([]byte, error) {
+	trxId := utils.GenerateTrxId()
 
 	urlTelco := TELCO_URL + "/subscription/{msisdn}/{productId}/refund"
 	jsonData, err := json.Marshal(
 		&model.RefundRequest{
-			RequestId:     "",
+			RequestId:     trxId,
 			TransactionId: "",
 		},
 	)
@@ -245,59 +252,13 @@ func (t *Telco) Refund() ([]byte, error) {
 }
 
 func (t *Telco) UnsubscribeSubscription() ([]byte, error) {
+	trxId := utils.GenerateTrxId()
+
 	urlTelco := TELCO_URL + "/subscription/{msisdn}/{productId}"
 	jsonData, err := json.Marshal(
 		&model.RefundRequest{
-			RequestId:     "",
-			TransactionId: "",
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-	req, err := http.NewRequest(http.MethodDelete, urlTelco, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return nil, err
-	}
-
-	var bearer = "Bearer " + t.session.GetAccessToken()
-	req.Header.Add("Authorization", bearer)
-	req.Header.Set("Content-Type", "application/json")
-
-	tr := &http.Transport{
-		MaxIdleConns:       30,
-		IdleConnTimeout:    30 * time.Second,
-		DisableCompression: true,
-	}
-
-	client := &http.Client{
-		Timeout:   30 * time.Second,
-		Transport: tr,
-	}
-
-	log.Println(req)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return body, nil
-}
-
-func (t *Telco) Notification() ([]byte, error) {
-	urlTelco := TELCO_URL + "/subscription/{msisdn}/{productId}"
-	jsonData, err := json.Marshal(
-		&model.RefundRequest{
-			RequestId:     "",
-			TransactionId: "",
+			RequestId:     trxId,
+			TransactionId: t.subscription.GetLatestTrxId(),
 		},
 	)
 	if err != nil {

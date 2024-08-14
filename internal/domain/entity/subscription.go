@@ -17,7 +17,7 @@ type Subscription struct {
 	Adnet                string    `json:"adnet,omitempty"`
 	PubID                string    `json:"pub_id,omitempty"`
 	AffSub               string    `json:"aff_sub,omitempty"`
-	LatestTrxId          string    `json:"trx_id,omitempty"`
+	LatestTrxId          string    `json:"latest_trx_id,omitempty"`
 	LatestKeyword        string    `json:"latest_keyword,omitempty"`
 	LatestSubject        string    `json:"latest_subject,omitempty"`
 	LatestStatus         string    `json:"latest_status,omitempty"`
