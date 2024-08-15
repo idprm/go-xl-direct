@@ -15,6 +15,7 @@ import (
 	"github.com/idprm/go-xl-direct/internal/domain/model"
 	"github.com/idprm/go-xl-direct/internal/logger"
 	"github.com/idprm/go-xl-direct/internal/utils"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -58,6 +59,7 @@ type ITelco interface {
 }
 
 func (t *Telco) OAuth() ([]byte, error) {
+
 	var p = url.Values{}
 
 	p.Add("client_id", TELCO_CLIENT_ID)
@@ -101,6 +103,9 @@ func (t *Telco) OAuth() ([]byte, error) {
 }
 
 func (t *Telco) CreateSubscription() ([]byte, error) {
+	l := t.logger.Init("mt", true)
+
+	start := time.Now()
 	trxId := utils.GenerateTrxId()
 
 	jsonData, err := json.Marshal(
@@ -134,7 +139,11 @@ func (t *Telco) CreateSubscription() ([]byte, error) {
 		Transport: tr,
 	}
 
-	log.Println(req)
+	t.logger.Writer(req)
+	l.WithFields(logrus.Fields{
+		"request": req,
+		"trx_id":  trxId,
+	}).Info("CREATE_SUB")
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -148,10 +157,23 @@ func (t *Telco) CreateSubscription() ([]byte, error) {
 		return nil, err
 	}
 
+	duration := time.Since(start).Milliseconds()
+	t.logger.Writer(string(body))
+	l.WithFields(logrus.Fields{
+		"response":    string(body),
+		"trx_id":      trxId,
+		"duration":    duration,
+		"status_code": resp.StatusCode,
+		"status_text": http.StatusText(resp.StatusCode),
+	}).Info("CREATE_SUB")
+
 	return body, nil
 }
 
 func (t *Telco) ConfirmOTP(pin string) ([]byte, error) {
+	l := t.logger.Init("mt", true)
+
+	start := time.Now()
 	trxId := utils.GenerateTrxId()
 
 	urlTelco := TELCO_URL + "/subscription/" + t.verify.GetMsisdn() + "/" + t.service.GetProductId() + "/otp/confirm"
@@ -184,7 +206,12 @@ func (t *Telco) ConfirmOTP(pin string) ([]byte, error) {
 		Transport: tr,
 	}
 
-	log.Println(req)
+	t.logger.Writer(req)
+	l.WithFields(logrus.Fields{
+		"msisdn":  t.verify.GetMsisdn(),
+		"request": req,
+		"trx_id":  trxId,
+	}).Info("CONFIRM_OTP")
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -198,17 +225,31 @@ func (t *Telco) ConfirmOTP(pin string) ([]byte, error) {
 		return nil, err
 	}
 
+	duration := time.Since(start).Milliseconds()
+	t.logger.Writer(string(body))
+	l.WithFields(logrus.Fields{
+		"msisdn":      t.verify.GetMsisdn(),
+		"response":    string(body),
+		"trx_id":      trxId,
+		"duration":    duration,
+		"status_code": resp.StatusCode,
+		"status_text": http.StatusText(resp.StatusCode),
+	}).Info("CONFIRM_OTP")
+
 	return body, nil
 }
 
 func (t *Telco) Refund() ([]byte, error) {
+	l := t.logger.Init("mt", true)
+
+	start := time.Now()
 	trxId := utils.GenerateTrxId()
 
-	urlTelco := TELCO_URL + "/subscription/{msisdn}/{productId}/refund"
+	urlTelco := TELCO_URL + "/subscription/" + t.subscription.GetMsisdn() + "/" + t.service.GetProductId() + "/refund"
 	jsonData, err := json.Marshal(
 		&model.RefundRequest{
 			RequestId:     trxId,
-			TransactionId: "",
+			TransactionId: t.subscription.GetLatestTrxId(),
 		},
 	)
 	if err != nil {
@@ -234,7 +275,12 @@ func (t *Telco) Refund() ([]byte, error) {
 		Transport: tr,
 	}
 
-	log.Println(req)
+	t.logger.Writer(req)
+	l.WithFields(logrus.Fields{
+		"msisdn":  t.subscription.GetMsisdn(),
+		"request": req,
+		"trx_id":  trxId,
+	}).Info("REFUND")
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -248,13 +294,27 @@ func (t *Telco) Refund() ([]byte, error) {
 		return nil, err
 	}
 
+	duration := time.Since(start).Milliseconds()
+	t.logger.Writer(string(body))
+	l.WithFields(logrus.Fields{
+		"msisdn":      t.subscription.GetMsisdn(),
+		"response":    string(body),
+		"trx_id":      trxId,
+		"duration":    duration,
+		"status_code": resp.StatusCode,
+		"status_text": http.StatusText(resp.StatusCode),
+	}).Info("REFUND")
+
 	return body, nil
 }
 
 func (t *Telco) UnsubscribeSubscription() ([]byte, error) {
+	l := t.logger.Init("mt", true)
+
+	start := time.Now()
 	trxId := utils.GenerateTrxId()
 
-	urlTelco := TELCO_URL + "/subscription/{msisdn}/{productId}"
+	urlTelco := TELCO_URL + "/subscription/" + t.subscription.GetMsisdn() + "/" + t.service.GetProductId()
 	jsonData, err := json.Marshal(
 		&model.RefundRequest{
 			RequestId:     trxId,
@@ -284,7 +344,12 @@ func (t *Telco) UnsubscribeSubscription() ([]byte, error) {
 		Transport: tr,
 	}
 
-	log.Println(req)
+	t.logger.Writer(req)
+	l.WithFields(logrus.Fields{
+		"msisdn":  t.subscription.GetMsisdn(),
+		"request": req,
+		"trx_id":  trxId,
+	}).Info("UNSUB")
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -297,6 +362,17 @@ func (t *Telco) UnsubscribeSubscription() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	duration := time.Since(start).Milliseconds()
+	t.logger.Writer(string(body))
+	l.WithFields(logrus.Fields{
+		"msisdn":      t.subscription.GetMsisdn(),
+		"response":    string(body),
+		"trx_id":      trxId,
+		"duration":    duration,
+		"status_code": resp.StatusCode,
+		"status_text": http.StatusText(resp.StatusCode),
+	}).Info("UNSUB")
 
 	return body, nil
 }

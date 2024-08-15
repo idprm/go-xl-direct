@@ -10,6 +10,7 @@ RUN mkdir -p /public
 RUN mkdir -p /views
 RUN mkdir -p /logs/http
 RUN mkdir -p /logs/traffic
+RUN mkdir -p /logs/web
 
 WORKDIR /app
 COPY . .

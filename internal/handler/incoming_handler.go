@@ -11,6 +11,7 @@ import (
 	"github.com/idprm/go-xl-direct/internal/providers/telco"
 	"github.com/idprm/go-xl-direct/internal/services"
 	"github.com/idprm/go-xl-direct/internal/utils"
+	"github.com/sirupsen/logrus"
 	"github.com/wiliehidayat87/rmqp"
 )
 
@@ -103,6 +104,7 @@ func (h *IncomingHandler) Campaign(c *fiber.Ctx) error {
 }
 
 func (h *IncomingHandler) MessageOriginated(c *fiber.Ctx) error {
+	l := h.logger.Init("mo", true)
 
 	c.Accepts("application/json")
 
@@ -140,6 +142,8 @@ func (h *IncomingHandler) MessageOriginated(c *fiber.Ctx) error {
 		)
 	}
 
+	l.WithFields(logrus.Fields{"request": req}).Info("MO")
+
 	h.rmq.IntegratePublish(
 		RMQ_MO_EXCHANGE,
 		RMQ_MO_QUEUE,
@@ -156,6 +160,7 @@ func (h *IncomingHandler) MessageOriginated(c *fiber.Ctx) error {
 }
 
 func (h *IncomingHandler) CreateSubscription(c *fiber.Ctx) error {
+	l := h.logger.Init("web", true)
 
 	c.Accepts("application/json")
 
@@ -171,6 +176,8 @@ func (h *IncomingHandler) CreateSubscription(c *fiber.Ctx) error {
 			},
 		)
 	}
+
+	l.WithFields(logrus.Fields{"request": req}).Info("CREATE_SUB")
 
 	if !h.serviceService.IsServiceByCode(req.GetService()) {
 		return c.Status(fiber.StatusNotFound).JSON(
@@ -251,6 +258,7 @@ func (h *IncomingHandler) CreateSubscription(c *fiber.Ctx) error {
 }
 
 func (h *IncomingHandler) ConfirmOTP(c *fiber.Ctx) error {
+	l := h.logger.Init("web", true)
 
 	c.Accepts("application/json")
 
@@ -266,6 +274,8 @@ func (h *IncomingHandler) ConfirmOTP(c *fiber.Ctx) error {
 			},
 		)
 	}
+
+	l.WithFields(logrus.Fields{"request": req}).Info("CONFIRM_OTP")
 
 	if !h.serviceService.IsServiceByCode(req.GetService()) {
 		return c.Status(fiber.StatusNotFound).JSON(
@@ -341,6 +351,7 @@ func (h *IncomingHandler) ConfirmOTP(c *fiber.Ctx) error {
 }
 
 func (h *IncomingHandler) Refund(c *fiber.Ctx) error {
+	l := h.logger.Init("web", true)
 
 	c.Accepts("application/json")
 
@@ -356,6 +367,8 @@ func (h *IncomingHandler) Refund(c *fiber.Ctx) error {
 			},
 		)
 	}
+
+	l.WithFields(logrus.Fields{"request": req}).Info("REFUND")
 
 	if !h.serviceService.IsServiceByCode(req.GetService()) {
 		return c.Status(fiber.StatusNotFound).JSON(
@@ -441,6 +454,7 @@ func (h *IncomingHandler) Refund(c *fiber.Ctx) error {
 }
 
 func (h *IncomingHandler) Unsubscribe(c *fiber.Ctx) error {
+	l := h.logger.Init("web", true)
 
 	c.Accepts("application/json")
 
@@ -456,6 +470,8 @@ func (h *IncomingHandler) Unsubscribe(c *fiber.Ctx) error {
 			},
 		)
 	}
+
+	l.WithFields(logrus.Fields{"request": req}).Info("UNSUBSCRIBE")
 
 	if !h.serviceService.IsServiceByCode(req.GetService()) {
 		return c.Status(fiber.StatusNotFound).JSON(
