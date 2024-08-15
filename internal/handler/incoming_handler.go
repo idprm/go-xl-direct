@@ -104,6 +104,8 @@ func (h *IncomingHandler) Campaign(c *fiber.Ctx) error {
 
 func (h *IncomingHandler) MessageOriginated(c *fiber.Ctx) error {
 
+	c.Accepts("application/json")
+
 	req := new(model.NotificationRequest)
 
 	err := c.BodyParser(req)
@@ -154,6 +156,8 @@ func (h *IncomingHandler) MessageOriginated(c *fiber.Ctx) error {
 }
 
 func (h *IncomingHandler) CreateSubscription(c *fiber.Ctx) error {
+
+	c.Accepts("application/json")
 
 	req := new(model.WebSubRequest)
 
@@ -248,6 +252,8 @@ func (h *IncomingHandler) CreateSubscription(c *fiber.Ctx) error {
 
 func (h *IncomingHandler) ConfirmOTP(c *fiber.Ctx) error {
 
+	c.Accepts("application/json")
+
 	req := new(model.WebOTPRequest)
 
 	err := c.BodyParser(req)
@@ -335,6 +341,8 @@ func (h *IncomingHandler) ConfirmOTP(c *fiber.Ctx) error {
 }
 
 func (h *IncomingHandler) Refund(c *fiber.Ctx) error {
+
+	c.Accepts("application/json")
 
 	req := new(model.WebSubRequest)
 
@@ -430,10 +438,11 @@ func (h *IncomingHandler) Refund(c *fiber.Ctx) error {
 			Message:    resp.GetStatus(),
 		},
 	)
-
 }
 
 func (h *IncomingHandler) Unsubscribe(c *fiber.Ctx) error {
+
+	c.Accepts("application/json")
 
 	req := new(model.WebSubRequest)
 
