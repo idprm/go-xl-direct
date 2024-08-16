@@ -18,7 +18,6 @@ import (
 const (
 	MO_REG   = "REG"
 	MO_UNREG = "UNREG"
-	MO_OFF   = "OFF"
 )
 
 type IncomingHandler struct {
@@ -46,34 +45,39 @@ func NewIncomingHandler(
 }
 
 var (
-	APP_HOST  string = utils.GetEnv("APP_HOST")
-	APP_URL   string = utils.GetEnv("APP_URL")
-	TELCO_SDC string = utils.GetEnv("TELCO_SDC")
+	APP_HOST   string = utils.GetEnv("APP_HOST")
+	APP_URL    string = utils.GetEnv("APP_URL")
+	TELCO_SDC  string = utils.GetEnv("TELCO_SDC")
+	RMQ_PREFIX string = utils.GetEnv("RMQ_PREFIX")
 )
 
-const (
-	RMQ_DATA_TYPE        string = "application/json"
-	RMQ_MO_EXCHANGE      string = "E_MO"
-	RMQ_MO_QUEUE         string = "Q_MO"
-	RMQ_RENEWAL_EXCHANGE string = "E_RENEWAL"
-	RMQ_RENEWAL_QUEUE    string = "Q_RENEWAL"
-	RMQ_NOTIF_EXCHANGE   string = "E_NOTIF"
-	RMQ_NOTIF_QUEUE      string = "Q_NOTIF"
-	RMQ_PB_MO_EXCHANGE   string = "E_POSTBACK_MO"
-	RMQ_PB_MO_QUEUE      string = "Q_POSTBACK_MO"
-	RMQ_PB_MT_EXCHANGE   string = "E_POSTBACK_MT"
-	RMQ_PB_MT_QUEUE      string = "Q_POSTBACK_MT"
-	MT_FIRSTPUSH         string = "FIRSTPUSH"
-	MT_RENEWAL           string = "RENEWAL"
-	MT_UNSUB             string = "UNSUB"
-	STATUS_SUCCESS       string = "SUCCESS"
-	STATUS_FAILED        string = "FAILED"
-	SUBJECT_FIRSTPUSH    string = "FIRSTPUSH"
-	SUBJECT_DAILYPUSH    string = "DAILYPUSH"
-	SUBJECT_RENEWAL      string = "RENEWAL"
-	SUBJECT_UNSUB        string = "UNSUB"
-	SUBJECT_RETRY        string = "RETRY"
-	SUBJECT_PURGE        string = "PURGE"
+var (
+	RMQ_DATA_TYPE          string = "application/json"
+	RMQ_MO_EXCHANGE        string = "E_" + RMQ_PREFIX + "_MO"
+	RMQ_MO_QUEUE           string = "Q_" + RMQ_PREFIX + "_MO"
+	RMQ_RENEWAL_EXCHANGE   string = "E_" + RMQ_PREFIX + "_RENEWAL"
+	RMQ_RENEWAL_QUEUE      string = "Q_" + RMQ_PREFIX + "_RENEWAL"
+	RMQ_NOTIF_EXCHANGE     string = "E_" + RMQ_PREFIX + "_NOTIF"
+	RMQ_NOTIF_QUEUE        string = "Q_" + RMQ_PREFIX + "_NOTIF"
+	RMQ_PB_MO_EXCHANGE     string = "E_" + RMQ_PREFIX + "_POSTBACK_MO"
+	RMQ_PB_MO_QUEUE        string = "Q_" + RMQ_PREFIX + "_POSTBACK_MO"
+	RMQ_PB_MT_EXCHANGE     string = "E_" + RMQ_PREFIX + "_POSTBACK_MT"
+	RMQ_PB_MT_QUEUE        string = "Q_" + RMQ_PREFIX + "_POSTBACK_MT"
+	RMQ_TRAFFIC_EXCHANGE   string = "E_" + RMQ_PREFIX + "_TRAFFIC"
+	RMQ_TRAFFIC_QUEUE      string = "Q_" + RMQ_PREFIX + "_TRAFFIC"
+	RMQ_DAILYPUSH_EXCHANGE string = "E_" + RMQ_PREFIX + "_BQ_DAILYPUSH"
+	RMQ_DAILYPUSH_QUEUE    string = "Q_" + RMQ_PREFIX + "_BQ_DAILYPUSH"
+	MT_FIRSTPUSH           string = "FIRSTPUSH"
+	MT_RENEWAL             string = "RENEWAL"
+	MT_UNSUB               string = "UNSUB"
+	STATUS_SUCCESS         string = "SUCCESS"
+	STATUS_FAILED          string = "FAILED"
+	SUBJECT_FIRSTPUSH      string = "FIRSTPUSH"
+	SUBJECT_DAILYPUSH      string = "DAILYPUSH"
+	SUBJECT_RENEWAL        string = "RENEWAL"
+	SUBJECT_UNSUB          string = "UNSUB"
+	SUBJECT_RETRY          string = "RETRY"
+	SUBJECT_PURGE          string = "PURGE"
 )
 
 var validate = validator.New()

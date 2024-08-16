@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS "subscriptions" (
   "service_id" int NOT NULL,
   "category" varchar(20) NOT NULL,
   "msisdn" varchar(60) NOT NULL,
+  "sub_id" int NOT NULL,
   "channel" varchar(20),
   "camp_keyword" varchar(55),
   "camp_sub_keyword" varchar(55),
@@ -86,12 +87,12 @@ CREATE TABLE IF NOT EXISTS "subscriptions" (
   FOREIGN KEY ("service_id") REFERENCES "services" ("id")
 );
 
-
 CREATE TABLE IF NOT EXISTS "transactions" (
   "id" SERIAL PRIMARY KEY,
   "tx_id" varchar(100),
   "service_id" int NOT NULL,
   "msisdn" varchar(60) NOT NULL,
+  "sub_id" int NOT NULL,
   "channel" varchar(20) NOT NULL,
   "camp_keyword" varchar(55),
   "camp_sub_keyword" varchar(55),
@@ -116,6 +117,7 @@ CREATE TABLE IF NOT EXISTS "histories" (
   "id" SERIAL PRIMARY KEY,
   "service_id" int NOT NULL,
   "msisdn" varchar(60) NOT NULL,
+  "sub_id" int NOT NULL,
   "channel" varchar(20),
   "adnet" varchar(20),
   "keyword" varchar(180),

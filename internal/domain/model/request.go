@@ -2,6 +2,7 @@ package model
 
 import (
 	"strings"
+	"time"
 )
 
 type CampaignDirectQueryRequest struct {
@@ -240,12 +241,14 @@ func (m *NotificationRequest) GetAmount() float64 {
 	return m.Amount
 }
 
-func (m *NotificationRequest) GetStartDate() string {
-	return m.StartDate
+func (m *NotificationRequest) GetStartDate() time.Time {
+	date, _ := time.Parse("2006-01-02 15:04:05", m.StartDate)
+	return date
 }
 
-func (m *NotificationRequest) GetNextRenewalDate() string {
-	return m.NextRenewalDate
+func (m *NotificationRequest) GetNextRenewalDate() time.Time {
+	date, _ := time.Parse("2006-01-02 15:04:05", m.NextRenewalDate)
+	return date
 }
 
 func (m *NotificationRequest) GetStatus() string {

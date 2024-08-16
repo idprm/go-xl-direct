@@ -7,6 +7,7 @@ RUN apk --update add ca-certificates
 LABEL author="Indra Pramana"
 
 RUN mkdir -p /logs/http
+RUN mkdir -p /logs/web
 RUN mkdir -p /logs/mo
 RUN mkdir -p /logs/mt
 
