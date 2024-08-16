@@ -9,7 +9,6 @@ import (
 	"github.com/idprm/go-xl-direct/internal/domain/model"
 	"github.com/idprm/go-xl-direct/internal/logger"
 	"github.com/idprm/go-xl-direct/internal/services"
-	"github.com/idprm/go-xl-direct/internal/utils"
 	"github.com/wiliehidayat87/rmqp"
 )
 
@@ -61,18 +60,28 @@ func (h *MOHandler) Firstpush() {
 		log.Println(err)
 	}
 
-	verify, _ := h.verifyService.Get(h.req.GetUserIdentifier())
+	verify, err := h.verifyService.Get(h.req.GetUserIdentifier())
+	if err != nil {
+		log.Println(err)
+	}
 
 	subscription := &entity.Subscription{
 		ServiceID:     service.GetId(),
 		Category:      service.GetCategory(),
 		Msisdn:        h.req.GetUserIdentifier(),
+		SubID:         h.req.GetSubscriptionId(),
 		LatestTrxId:   verify.GetTrxId(),
 		LatestKeyword: MO_REG + " " + service.GetCode(),
 		LatestSubject: SUBJECT_FIRSTPUSH,
 		Channel:       "",
 		IsActive:      true,
 		IpAddress:     verify.GetIpAddress(),
+	}
+
+	if h.IsSub() {
+		h.subscriptionService.UpdateEnable(subscription)
+	} else {
+		h.subscriptionService.SaveSubscription(subscription)
 	}
 
 	if h.req.IsActive() {
@@ -83,13 +92,13 @@ func (h *MOHandler) Firstpush() {
 			LatestSubject:        SUBJECT_FIRSTPUSH,
 			LatestStatus:         STATUS_SUCCESS,
 			LatestPIN:            "",
-			Amount:               service.GetPrice(),
-			RenewalAt:            time.Now().AddDate(0, 0, service.GetRenewalDay()),
+			Amount:               h.req.GetAmount(),
+			RenewalAt:            h.req.GetNextRenewalDate(),
 			ChargeAt:             time.Now(),
 			Success:              1,
 			IsRetry:              false,
 			TotalFirstpush:       1,
-			TotalAmountFirstpush: service.GetPrice(),
+			TotalAmountFirstpush: h.req.GetAmount(),
 			LatestPayload:        "",
 		}
 		h.subscriptionService.UpdateSuccess(subSuccess)
@@ -98,9 +107,10 @@ func (h *MOHandler) Firstpush() {
 			TxID:         verify.GetTrxId(),
 			ServiceID:    service.GetId(),
 			Msisdn:       h.req.GetUserIdentifier(),
+			SubID:        h.req.GetSubscriptionId(),
 			Channel:      "",
-			Keyword:      "",
-			Amount:       service.GetPrice(),
+			Keyword:      MO_REG + " " + service.GetCode(),
+			Amount:       h.req.GetAmount(),
 			PIN:          "",
 			Status:       STATUS_SUCCESS,
 			StatusCode:   "",
@@ -117,7 +127,7 @@ func (h *MOHandler) Firstpush() {
 			ServiceID: service.GetId(),
 			Msisdn:    h.req.GetUserIdentifier(),
 			Channel:   "",
-			Keyword:   "",
+			Keyword:   MO_REG + " " + service.GetCode(),
 			Subject:   SUBJECT_FIRSTPUSH,
 			Status:    STATUS_SUCCESS,
 		}
@@ -146,7 +156,6 @@ func (h *MOHandler) Firstpush() {
 		)
 
 	} else {
-
 		subFailed := &entity.Subscription{
 			ServiceID:     service.GetId(),
 			Msisdn:        h.req.GetUserIdentifier(),
@@ -165,6 +174,7 @@ func (h *MOHandler) Firstpush() {
 			TxID:         verify.GetTrxId(),
 			ServiceID:    service.GetId(),
 			Msisdn:       h.req.GetUserIdentifier(),
+			SubID:        h.req.GetSubscriptionId(),
 			Channel:      "",
 			Keyword:      MO_REG + " " + service.GetCode(),
 			Status:       STATUS_FAILED,
@@ -218,8 +228,6 @@ func (h *MOHandler) Firstpush() {
 
 func (h *MOHandler) Unsub() {
 
-	trxId := utils.GenerateTrxId()
-
 	service, err := h.getService()
 	if err != nil {
 		log.Println(err)
@@ -229,7 +237,7 @@ func (h *MOHandler) Unsub() {
 		ServiceID:     service.GetId(),
 		Msisdn:        h.req.GetUserIdentifier(),
 		Channel:       "",
-		LatestTrxId:   trxId,
+		LatestTrxId:   h.req.GetTransactionId(),
 		LatestKeyword: MO_UNREG + " " + service.GetCode(),
 		LatestSubject: SUBJECT_UNSUB,
 		LatestStatus:  STATUS_SUCCESS,
@@ -247,7 +255,7 @@ func (h *MOHandler) Unsub() {
 	}
 
 	transaction := &entity.Transaction{
-		TxID:         trxId,
+		TxID:         h.req.GetTransactionId(),
 		ServiceID:    service.GetId(),
 		Msisdn:       h.req.GetUserIdentifier(),
 		Channel:      "",
@@ -309,5 +317,13 @@ func (h *MOHandler) Renewal() {
 }
 
 func (h *MOHandler) Refund() {
+	log.Println(h.req)
+}
 
+func (h *MOHandler) IsSub() bool {
+	service, err := h.getService()
+	if err != nil {
+		log.Println(err)
+	}
+	return h.subscriptionService.IsSubscription(service.GetId(), h.req.GetUserIdentifier())
 }

@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	queryInsertTransaction         = "INSERT INTO transactions(tx_id, service_id, msisdn, channel, camp_keyword, camp_sub_keyword, adnet, pub_id, aff_sub, keyword, pin, amount, status, status_code, status_detail, subject, ip_address, payload, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)"
+	queryInsertTransaction         = "INSERT INTO transactions(tx_id, service_id, msisdn, sub_id, channel, camp_keyword, camp_sub_keyword, adnet, pub_id, aff_sub, keyword, pin, amount, status, status_code, status_detail, subject, ip_address, payload, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)"
 	queryDeleteTransaction         = "DELETE FROM transactions WHERE service_id = $1 AND msisdn = $2 AND subject = $3 AND status = $4 AND DATE(created_at) = DATE($5)"
 	querySelectGroupByStatus       = "SELECT DATE(created_at), service_id, subject, status, COUNT(msisdn) as count, SUM(ROUND(amount)) as amount FROM transactions WHERE DATE(created_at) >= DATE(NOW() + interval '-7 day') GROUP BY service_id, status, DATE(created_at), subject ORDER BY DATE(created_at) DESC, status DESC, subject ASC LIMIT 35"
 	querySelectGroupByStatusDetail = "SELECT DATE(created_at), service_id, subject, status, status_detail, COUNT(msisdn) as count FROM transactions WHERE DATE(created_at) >= DATE(NOW() + interval '-7 day') GROUP BY service_id, status, status_detail, DATE(created_at), subject ORDER BY DATE(created_at) DESC LIMIT 35"
@@ -46,7 +46,7 @@ func (r *TransactionRepository) Save(t *entity.Transaction) error {
 		return err
 	}
 	defer stmt.Close()
-	res, err := stmt.ExecContext(ctx, t.TxID, t.ServiceID, t.Msisdn, t.Channel, t.CampKeyword, t.CampSubKeyword, t.Adnet, t.PubID, t.AffSub, t.Keyword, t.PIN, t.Amount, t.Status, t.StatusCode, t.StatusDetail, t.Subject, t.IpAddress, t.Payload, time.Now(), time.Now())
+	res, err := stmt.ExecContext(ctx, t.TxID, t.ServiceID, t.Msisdn, t.SubID, t.Channel, t.CampKeyword, t.CampSubKeyword, t.Adnet, t.PubID, t.AffSub, t.Keyword, t.PIN, t.Amount, t.Status, t.StatusCode, t.StatusDetail, t.Subject, t.IpAddress, t.Payload, time.Now(), time.Now())
 	if err != nil {
 		log.Printf("Error %s when inserting row into transactions table", err)
 		return err

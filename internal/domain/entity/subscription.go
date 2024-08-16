@@ -11,6 +11,7 @@ type Subscription struct {
 	Service              *Service  `json:"service,omitempty"`
 	Category             string    `json:"category,omitempty"`
 	Msisdn               string    `json:"msisdn"`
+	SubID                int64     `json:"sub_id"`
 	Channel              string    `json:"channel,omitempty"`
 	CampKeyword          string    `json:"camp_keyword,omitempty"`
 	CampSubKeyword       string    `json:"camp_sub_keyword,omitempty"`

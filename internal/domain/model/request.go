@@ -215,7 +215,7 @@ func (r *UnsubscribeRequest) SetRequestId(val string) {
 
 type NotificationRequest struct {
 	UserIdentifier  string  `validate:"required" json:"userIdentifier"`
-	SubscriptionId  int     `validate:"required" json:"subscriptionId"`
+	SubscriptionId  int64   `validate:"required" json:"subscriptionId"`
 	ProductId       string  `validate:"required" json:"productId"`
 	Amount          float64 `validate:"required" json:"amount"`
 	StartDate       string  `json:"startDate"`
@@ -229,7 +229,7 @@ func (m *NotificationRequest) GetUserIdentifier() string {
 	return m.UserIdentifier
 }
 
-func (m *NotificationRequest) GetSubscriptionId() int {
+func (m *NotificationRequest) GetSubscriptionId() int64 {
 	return m.SubscriptionId
 }
 

@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	queryInsertSubscription           = "INSERT INTO subscriptions(category, service_id, msisdn, channel, camp_keyword, camp_sub_keyword, adnet, pub_id, aff_sub, latest_trxid, latest_keyword, latest_subject, latest_status,latest_pin, success, ip_address, is_active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)"
+	queryInsertSubscription           = "INSERT INTO subscriptions(category, service_id, msisdn, sub_id, channel, camp_keyword, camp_sub_keyword, adnet, pub_id, aff_sub, latest_trxid, latest_keyword, latest_subject, latest_status,latest_pin, success, ip_address, is_active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)"
 	queryUpdateSubSuccess             = "UPDATE subscriptions SET latest_trxid = $1, latest_subject = $2, latest_status = $3, latest_pin = $4, amount = amount + $5, renewal_at = $6, charge_at = $7, success = success + $8, is_retry = $9, total_firstpush = total_firstpush + $10, total_renewal = total_renewal + $11, total_amount_firstpush = total_amount_firstpush + $12, total_amount_renewal = total_amount_renewal + $13, latest_payload = $14, updated_at = NOW() WHERE service_id = $15 AND msisdn = $16"
 	queryUpdateSubFailed              = "UPDATE subscriptions SET latest_trxid = $1, latest_subject = $2, latest_status = $3, renewal_at = $4, retry_at = $5, failed = failed + $6, is_retry = $7, latest_payload = $8, updated_at = NOW() WHERE service_id = $9 AND msisdn = $10"
 	queryUpdateSubLatest              = "UPDATE subscriptions SET latest_trxid = $1, latest_keyword = $2, latest_subject = $3, latest_status = $4, updated_at = NOW() WHERE service_id = $5 AND msisdn = $6"
@@ -90,7 +90,7 @@ func (r *SubscriptionRepository) Save(s *entity.Subscription) error {
 		return err
 	}
 	defer stmt.Close()
-	res, err := stmt.ExecContext(ctx, s.Category, s.ServiceID, s.Msisdn, s.Channel, s.CampKeyword, s.CampSubKeyword, s.Adnet, s.PubID, s.AffSub, s.LatestTrxId, s.LatestKeyword, s.LatestSubject, s.LatestStatus, s.LatestPIN, s.Success, s.IpAddress, s.IsActive, time.Now(), time.Now())
+	res, err := stmt.ExecContext(ctx, s.Category, s.ServiceID, s.Msisdn, s.SubID, s.Channel, s.CampKeyword, s.CampSubKeyword, s.Adnet, s.PubID, s.AffSub, s.LatestTrxId, s.LatestKeyword, s.LatestSubject, s.LatestStatus, s.LatestPIN, s.Success, s.IpAddress, s.IsActive, time.Now(), time.Now())
 	if err != nil {
 		log.Printf("Error %s when inserting row into subscriptions table", err)
 		return err
