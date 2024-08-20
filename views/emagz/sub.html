@@ -1,0 +1,390 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{{ .app_url }}/static/emagz/css/mdb.dark.min.css" />
+    <link rel="stylesheet" href="{{ .app_url }}/static/emagz/css/style.css" />
+    <title>Subscribe EMAGZ</title>
+  </head>
+  <body>
+    <div class="mx-auto box-wrapper">
+      <img src="{{ .app_url }}/static/emagz/img/banner.jpg" alt="Banner" class="img-fluid" />
+    </div>
+
+    <div class="container-fluid box-wrapper text-center pb-3 mt-3">
+        <form class="content-box mb-3">
+            <!-- INPUT MSISDN -->
+            <div id="form-msisdn">
+                <h5 class="mb-2 text-uppercase title">MASUKKAN NOMOR SELULER ANDA</h5>
+                <input
+                    id="msisdn"
+                    type="number"
+                    class="form-control form-control-lg shadow text-center rounded-pill border-2 mb-3"
+                    placeholder="XXXX" />
+                <input id="code" name="code" type="hidden" value="{{ .service_code }}" />
+                <input id="app_url" name="app_url" type="hidden" value="{{ .app_url }}" />
+                <div class="button-wrapper mx-auto">
+                    <button
+                    class="btn btn-transparent button w-100 rounded-pill"
+                    id="subscribe">
+                    BERLANGGANAN!
+                    </button>
+                    <div id="loading_1" class="spinner-border" role="status" style="display: none;">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <div class="mt-3 small d-block">
+                    Berlangganan, 3000 IDR per hari, 5000 IDR per 3 hari, 15000 IDR per
+                    minggu.
+                    <br />
+                    Layanan diperbarui secara otomatis.
+                    <br />
+                    Untuk dukungan, hubungi kami di XXXXXX
+                    </div>
+                </div>
+            </div>
+
+            <!-- INPUT OTP -->
+            <div id="form-otp" style="display: none;">
+                <h5 class="mb-2 text-uppercase title">MASUKKAN PIN OTP ANDA</h5>
+                <input 
+                    id="pin"
+                    type="number" 
+                    class="form-control form-control-lg shadow text-center rounded-pill border-2 mb-3" 
+                    placeholder="XXXX"
+                />
+                <div class="button-wrapper mx-auto">
+                    <button id="verify" class="btn btn-transparent button btn-lg w-100 rounded-pill">Verify</button>
+                    <div id="loading_2" class="spinner-border" role="status" style="display: none;">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+            
+        </form>
+        <div class="container-fluid">
+            <p class="info mb-2" style="text-align: justify">
+            Cara kerja layanan EMAGZ: Peserta mendaftar dengan nomor ponselnya dan
+            mengkonfirmasi pendaftaran, serta biaya selanjutnya dengan menjawab OK
+            dengan pesan otorisasi di telepon/kode PIN yang diterima melalui SMS.
+            Dengan cara ini, peserta menerima bahwa dia telah membaca dan memahami
+            syarat dan ketentuan serta menerima langganan layanan. Layanan ini
+            dikenakan biaya 3000 IDR per hari, 5000 IDR per 3 hari, 15000 IDR per
+            minggu termasuk VAT. Ini akan ditagih melalui tagihan seluler atau
+            dipotong secara otomatis dari saldo kartu prabayar. Ini adalah layanan
+            berlangganan yang diperpanjang secara otomatis. Jika layanan tidak
+            dibatalkan, maka akan diperpanjang secara otomatis. Anda dapat
+            menghentikan layanan kapan saja dengan mengirimkan pesan dengan: STOP
+            EMAGZ ke XXXX Untuk Dukungan, hubungi XXXXXX atau kirim email ke
+            support@linkit360.com Batas usia 18 tahun. Layanan ini disediakan oleh
+            PT LINKIT, Menara Jamsostek Utara Lantai 9. Jl. Gatot Subroto Kav. 38,
+            Jakarta Selatan, Indonesia.
+            </p>
+            <ul class="footer">
+            <li>
+                <a href="#" data-mdb-toggle="modal" data-mdb-target="#modalTerm">
+                Syarat dan Ketentuan
+                </a>
+            </li>
+            </ul>
+        </div>
+    </div>
+  </body>
+
+  <!-- Modal -->
+  <div class="modal fade" id="modalTerm" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header position-relative">
+          <h5 class="modal-title position-absolute" style="left: 1rem">
+            Terms and Conditions
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-mdb-dismiss="modal"
+            aria-label="Close"></button>
+        </div>
+        <div class="modal-body small">
+          <p>
+            These terms and conditions apply to the use of EMAGZ. By using this
+            service, the client acknowledges and agrees to these terms and
+            conditions. EMAGZ is a subscription service. Charges will be made to
+            your mobile bill or deducted from your prepaid account. Carrier fees
+            or data charges ay apply.
+          </p>
+          <ol>
+            <li>
+              <p class="fw-bold mb-2">Method of Entry</p>
+              <p>
+                Once you have entered the EMAGZ subscription you will receive
+                and SMS with a link for you to access the content. Follow the
+                instructions to play the content of your choice.
+              </p>
+            </li>
+            <li>
+              <p class="fw-bold mb-2">Liability</p>
+              <p>
+                2.1. The Liability of the promoter and its managing company
+                shall be limited to the amount of the subscription charges
+                actually paid.
+              </p>
+              <p>
+                2.2 We shall not be liable for any loss or damage that we could
+                not have reasonably been expectedto foresee at the start of the
+                agreement, or for any loss of or corruption to data, system
+                equipment,
+              </p>
+              <p>
+                2.3. In respect of any insured prize, the liability of the
+                promoter and its managing company shall be limited to the sums
+                actually recoverable under the applicable insurance policy.
+              </p>
+            </li>
+            <li>
+              <p class="fw-bold mb-2">
+                Email and Mobile Marketing Terms &amp; Conditions:
+              </p>
+              <p>
+                By giving us your mobile number and / or email address, you
+                agree for EMAGZ and its managing company to send you either an
+                occasion email or text, notifying you of the latest offers and
+                promotions available from our group. If you ever wish to be
+                removed from any of our email/text broadcasts, you will have a
+                link provided on each email saying ‘UNSUBSCRIBE’.
+              </p>
+            </li>
+            <li>
+              <p class="fw-bold mb-2">Assignment</p>
+              <p>
+                EMAGZ reserves the right to assign the agreement to and
+                acceptance of these Terms &amp; Conditions, in whole or in part,
+                at any time without notice. The user may not assign any of
+                his/her rights or obligations arising from their agreement to
+                and acceptance of these Terms &amp; Conditions.
+              </p>
+            </li>
+            <li>
+              <p class="fw-bold mb-2">
+                Support Email ID Contact for EMAGZ service
+              </p>
+              <p>Email: cs@linkit360.com</p>
+            </li>
+            <li>
+              <p class="fw-bold mb-2">
+                Changes to these Terms &amp; Conditions
+              </p>
+              <p>
+                We aim to meet high standards and our policies and procedures
+                are therefore constantly under review. From time to time, we may
+                update our Terms &amp; Conditions and Privacy policies to
+                optimise the user experience and to comply with legal and
+                regulatory obligations. Accordingly, we recommend that you check
+                these pages periodically in order to review our current
+                policies.
+              </p>
+            </li>
+            <li>
+              <p class="fw-bold mb-2">Trademarks / Logos / Images</p>
+              <p>
+                Trademarks, service marks, logos (including without limitation,
+                the individual names of products &amp; retailers) are the
+                property of their owners. Brands/Logos/Images used have not been
+                done with the participation in, or in any way reviewed by the
+                owners of this advertisement nor have they authorised it.
+              </p>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script
+    src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+    crossorigin="anonymous"></script>
+  <script src="{{ .app_url }}/static/emagz/js/mdb.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+    $(document).ready(function () {
+        $('#form-otp').hide();
+
+        var ip = "";
+        $.getJSON("https://api.ipify.org/?format=json", function (e) {
+            ip = e.ip;
+        });
+
+        $('#subscribe').click(function (event) {
+            event.preventDefault();
+
+            var getUrlParameter = function getUrlParameter(sParam) {
+                var sPageURL = window.location.search.substring(1),
+                    sURLVariables = sPageURL.split('&'),
+                    sParameterName,
+                    i;
+
+                for (i = 0; i < sURLVariables.length; i++) {
+                    sParameterName = sURLVariables[i].split('=');
+
+                    if (sParameterName[0] === sParam) {
+                        return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+                    }
+                }
+                return "";
+            };
+
+            $('#subscribe').hide();
+            $('#loading_1').show();
+            
+            var app_url = ""
+            var service = ""
+            var keyword = "";
+            var subkey = "";
+            var adnet = "";
+            var pubid = "";
+            var aff_sub = "";
+
+            app_url = $("#app_url").val();
+            service =  $("#code").val();
+            msisdn =  $("#msisdn").val();
+            keyword = getUrlParameter("keyword");
+            subkey = getUrlParameter("subkey");
+            adnet = getUrlParameter('ad');
+            pubid = getUrlParameter('pubid');
+            aff_sub = getUrlParameter('aff_sub');
+
+            $.ajax({
+                type: 'POST',
+                url: app_url + '/v1/sub',
+                data: JSON.stringify({
+                    service: service,
+                    msisdn: msisdn,
+                    // keyword: keyword,
+                    // subkey: subkey,
+                    // adnet: adnet,
+                    // pubid: pubid,
+                    // aff_sub: aff_sub,
+                    ip_address: ip,
+                }),
+                dataType: 'json',
+                contentType: "application/json; charset=utf-8",
+                success: function (json) {
+                    if (json.error == false) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'PIN',
+                            text: "MASUKKAN PIN OTP ANDA",
+                        });
+
+                        // hide element
+                        $('#form-msisdn').hide();
+
+                        // show element
+                        $('#form-otp').show();
+                        $('#form-otp').removeAttr("style");
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: json.message,
+                        });
+                    }
+                    $('#subscribe').show();
+                    $('#loading_1').hide();
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: "Error Timeout",
+                    });
+                    $('#subscribe').show();
+                    $('#loading_1').hide();
+                }
+            });
+        })
+
+        $('#verify').click(function (event) {
+            event.preventDefault();
+
+            $('#verify').hide();
+            $('#loading_2').show();
+
+            var app_url = $("#app_url").val();
+            var service =  $("#code").val();
+            var msisdn =  $("#msisdn").val();
+            var pin = $("#pin").val();
+
+            if (pin.length == 4) {
+                $.ajax({
+                    type: 'POST',
+                    url: app_url + '/v1/otp',
+                    data: JSON.stringify({
+                        service: service,
+                        msisdn: msisdn,
+                        pin: pin,
+                    }),
+                    dataType: 'json',
+                    contentType: "application/json; charset=utf-8",
+                    success: function (json) {
+                        if (json.error == false) {
+                            // success
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'SUKSES',
+                                text: json.message,
+                            });
+
+                            setTimeout(function () {
+                                window.location.href = json.redirect_url;
+
+                                $('#verify').show();
+                                $('#loading_2').hide();
+                            }, 500);
+                        } else {
+                            // not success
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: json.message,
+                            });
+
+                            $('#verify').show();
+                            $('#loading_2').hide();
+                        }
+
+                        // clear field
+                        $('#pin').val('');
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: "Error Timeout",
+                        });
+
+                        // clear field
+                        $('#pin').val('');
+
+                        $('#verify').show();
+                        $('#loading_2').hide();
+                    }
+                })
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Silakan masukkan 4 digit',
+                })
+
+                $('#verify').show();
+                $('#loading_2').hide();
+            }
+        })
+    })
+  </script>
+</html>

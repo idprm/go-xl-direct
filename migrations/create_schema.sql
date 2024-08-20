@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS "services" (
   "code" varchar(25) UNIQUE NOT NULL,
   "name" varchar(50) NOT NULL,
   "price" float(5) DEFAULT 0,
-  "program_id"  varchar(25),
+  "product_id"  varchar(25),
   "sid_optin" varchar(35) NOT NULL,
   "sid_mt" varchar(35) NOT NULL,
   "renewal_day" int DEFAULT 0,

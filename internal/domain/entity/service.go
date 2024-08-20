@@ -134,3 +134,7 @@ func (s *Service) IsGamesik() bool {
 func (s *Service) IsDigmagz() bool {
 	return s.GetCategory() == "DIGMAGZ"
 }
+
+func (s *Service) IsEmagz() bool {
+	return s.GetCategory() == "EMAGZ"
+}

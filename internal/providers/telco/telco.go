@@ -124,7 +124,15 @@ func (t *Telco) CreateSubscription() ([]byte, error) {
 		return nil, err
 	}
 
-	var bearer = "Bearer " + t.session.GetAccessToken()
+	oauth, err := t.OAuth()
+	if err != nil {
+		return nil, err
+	}
+
+	var respOauth model.OAuthResponse
+	json.Unmarshal(oauth, &respOauth)
+
+	var bearer = "Bearer " + respOauth.GetAccessToken()
 	req.Header.Add("Authorization", bearer)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -150,12 +158,12 @@ func (t *Telco) CreateSubscription() ([]byte, error) {
 		return nil, err
 	}
 
-	defer resp.Body.Close()
-
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
+
+	defer resp.Body.Close()
 
 	duration := time.Since(start).Milliseconds()
 	t.logger.Writer(string(body))
@@ -191,7 +199,15 @@ func (t *Telco) ConfirmOTP(pin string) ([]byte, error) {
 		return nil, err
 	}
 
-	var bearer = "Bearer " + t.session.GetAccessToken()
+	oauth, err := t.OAuth()
+	if err != nil {
+		return nil, err
+	}
+
+	var respOauth model.OAuthResponse
+	json.Unmarshal(oauth, &respOauth)
+
+	var bearer = "Bearer " + respOauth.GetAccessToken()
 	req.Header.Add("Authorization", bearer)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -260,7 +276,15 @@ func (t *Telco) Refund() ([]byte, error) {
 		return nil, err
 	}
 
-	var bearer = "Bearer " + t.session.GetAccessToken()
+	oauth, err := t.OAuth()
+	if err != nil {
+		return nil, err
+	}
+
+	var respOauth model.OAuthResponse
+	json.Unmarshal(oauth, &respOauth)
+
+	var bearer = "Bearer " + respOauth.GetAccessToken()
 	req.Header.Add("Authorization", bearer)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -329,7 +353,15 @@ func (t *Telco) UnsubscribeSubscription() ([]byte, error) {
 		return nil, err
 	}
 
-	var bearer = "Bearer " + t.session.GetAccessToken()
+	oauth, err := t.OAuth()
+	if err != nil {
+		return nil, err
+	}
+
+	var respOauth model.OAuthResponse
+	json.Unmarshal(oauth, &respOauth)
+
+	var bearer = "Bearer " + respOauth.GetAccessToken()
 	req.Header.Add("Authorization", bearer)
 	req.Header.Set("Content-Type", "application/json")
 

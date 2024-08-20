@@ -1,0 +1,151 @@
+@import url("https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap");
+
+body {
+  font-family: "arial", sans-serif;
+}
+
+.box-wrapper {
+  max-width: 576px;
+}
+
+.title {
+  font-family: "Rubik", sans-serif;
+  font-size: 1.15rem;
+  line-height: 1.5;
+}
+
+.button-wrapper {
+  width: 85%;
+}
+
+.button {
+  letter-spacing: 1px;
+  font-size: 1.15rem;
+  font-family: "Rubik", sans-serif;
+  font-weight: 700;
+  background-color: #084da2;
+  background: linear-gradient(180deg, #2271d2 0%, #084da2 100%);
+  color: white;
+  border: 3px solid #2587ff;
+}
+.button:hover,
+.button:focus {
+  color: white;
+}
+
+.info {
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: 0.7;
+  text-align: justify;
+}
+
+.select-lang {
+  text-align: right;
+  font-size: 12px;
+  margin: 0;
+  padding: 0;
+}
+.select-lang li {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+.icon-animate {
+  display: inline;
+}
+
+.bounce {
+  animation: bounce 3s ease infinite;
+}
+
+.form-check-inline {
+  font-size: 0.875rem;
+  margin-right: 0.25rem;
+}
+.form-check-inline:last-child {
+  margin-right: 0;
+}
+
+@keyframes bounce {
+  70% {
+    transform: translateY(0%);
+  }
+  80% {
+    transform: translateY(-15%);
+  }
+  90% {
+    transform: translateY(0%);
+  }
+  95% {
+    transform: translateY(-7%);
+  }
+  97% {
+    transform: translateY(0%);
+  }
+  99% {
+    transform: translateY(-3%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.box-subs {
+  background: #3c3c3c;
+  border-radius: 10px;
+  padding: 24px;
+  border-bottom: 5px solid #084da2;
+}
+
+.box-subs .title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 32px;
+}
+
+.box-subs .button {
+  animation: zoom-in-zoom-out 2s ease infinite;
+}
+
+@keyframes zoom-in-zoom-out {
+  0% {
+    transform: scale(1, 1);
+  }
+  50% {
+    transform: scale(1.1, 1.1);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+.footer {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  opacity: 0.8;
+  margin: 0;
+  padding: 0;
+}
+
+.footer li {
+  display: inline-block;
+  list-style: none;
+}
+
+.footer li::after {
+  content: "\00B7";
+  padding-right: 5px;
+  padding-left: 5px;
+}
+
+.footer li:last-child {
+  border-right: none;
+  padding-right: 0;
+}
+
+.footer li:last-child::after {
+  content: none;
+}

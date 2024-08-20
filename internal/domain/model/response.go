@@ -1,9 +1,10 @@
 package model
 
 type WebResponse struct {
-	Error      bool   `json:"error"`
-	StatusCode int    `json:"status_code"`
-	Message    string `json:"message"`
+	Error       bool   `json:"error"`
+	StatusCode  int    `json:"status_code"`
+	Message     string `json:"message"`
+	RedirectUrl string `json:"redirect_url"`
 }
 
 type OAuthResponse struct {
@@ -25,8 +26,10 @@ func (r *OAuthResponse) GetExpiresIn() int {
 }
 
 type TelcoResponse struct {
-	TransactionId string `json:"transactionId"`
-	Status        string `json:"status"`
+	TransactionId    string `json:"transactionId"`
+	Status           string `json:"status"`
+	ErrorTitle       string `json:"error"`
+	ErrorDescription string `json:"error_description"`
 }
 
 func (r *TelcoResponse) GetTransactionId() string {
@@ -43,4 +46,12 @@ func (r *TelcoResponse) IsSuccess() bool {
 
 func (r *TelcoResponse) IsInvalid() bool {
 	return r.GetStatus() == "INVALID_OR_EXPIRED_PIN"
+}
+
+func (r *TelcoResponse) GetErrorTitle() string {
+	return r.ErrorTitle
+}
+
+func (r *TelcoResponse) GetErrorDescription() string {
+	return r.ErrorDescription
 }

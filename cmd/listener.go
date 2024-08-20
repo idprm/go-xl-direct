@@ -115,6 +115,11 @@ func routerUrl(db *sql.DB, rds *redis.Client, rmq rmqp.AMQP, logger *logger.Logg
 		verifyService,
 	)
 
+	// landing page
+	lp := r.Group("p")
+	lp.Get("/:service", h.LandingPage)
+
+	// endpoint API
 	v1 := r.Group("v1")
 	v1.Post("sub", h.CreateSubscription)
 	v1.Post("otp", h.ConfirmOTP)

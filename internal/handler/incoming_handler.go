@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -95,6 +96,40 @@ func ValidateStruct(data interface{}) []*entity.ErrorResponse {
 		}
 	}
 	return errors
+}
+
+func (h *IncomingHandler) LandingPage(c *fiber.Ctx) error {
+	paramService := strings.ToUpper(c.Params("service"))
+
+	if !h.serviceService.IsServiceByCode(paramService) {
+		return c.Status(fiber.StatusNotFound).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusNotFound,
+				Message:    "service_not_found",
+			},
+		)
+	}
+
+	service, err := h.serviceService.GetServiceByCode(paramService)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusInternalServerError,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	if service.IsEmagz() {
+		return c.Render("emagz/sub", fiber.Map{
+			"app_url":      APP_URL,
+			"service_code": paramService,
+		})
+	}
+
+	return c.Redirect(APP_URL)
 }
 
 func (h *IncomingHandler) Campaign(c *fiber.Ctx) error {
@@ -239,7 +274,6 @@ func (h *IncomingHandler) CreateSubscription(c *fiber.Ctx) error {
 	json.Unmarshal(mt, &resp)
 
 	if resp.IsSuccess() {
-
 		verify.SetTrxId(resp.GetTransactionId())
 		h.verifyService.Set(verify)
 
@@ -248,6 +282,16 @@ func (h *IncomingHandler) CreateSubscription(c *fiber.Ctx) error {
 				Error:      false,
 				StatusCode: fiber.StatusOK,
 				Message:    resp.GetStatus(),
+			},
+		)
+	}
+
+	if !resp.IsSuccess() {
+		return c.Status(fiber.StatusOK).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusOK,
+				Message:    resp.GetErrorDescription(),
 			},
 		)
 	}
@@ -335,21 +379,32 @@ func (h *IncomingHandler) ConfirmOTP(c *fiber.Ctx) error {
 	var resp model.TelcoResponse
 	json.Unmarshal(mt, &resp)
 
+	if resp.IsSuccess() {
+		return c.Status(fiber.StatusOK).JSON(
+			&model.WebResponse{
+				Error:       false,
+				StatusCode:  fiber.StatusOK,
+				Message:     resp.GetStatus(),
+				RedirectUrl: service.GetUrlPortal(),
+			},
+		)
+	}
+
 	if !resp.IsSuccess() {
 		return c.Status(fiber.StatusOK).JSON(
 			&model.WebResponse{
-				Error:      false,
+				Error:      true,
 				StatusCode: fiber.StatusOK,
 				Message:    resp.GetStatus(),
 			},
 		)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(
+	return c.Status(fiber.StatusBadGateway).JSON(
 		&model.WebResponse{
 			Error:      true,
-			StatusCode: fiber.StatusOK,
-			Message:    resp.GetStatus(),
+			StatusCode: fiber.StatusBadGateway,
+			Message:    "error_bad_gateway",
 		},
 	)
 }
