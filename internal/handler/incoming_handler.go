@@ -101,15 +101,15 @@ func ValidateStruct(data interface{}) []*entity.ErrorResponse {
 func (h *IncomingHandler) LandingPage(c *fiber.Ctx) error {
 	paramService := strings.ToUpper(c.Params("service"))
 
-	if !h.serviceService.IsServiceByCode(paramService) {
-		return c.Status(fiber.StatusNotFound).JSON(
-			&model.WebResponse{
-				Error:      true,
-				StatusCode: fiber.StatusNotFound,
-				Message:    "service_not_found",
-			},
-		)
-	}
+	// if !h.serviceService.IsServiceByCode(paramService) {
+	// 	return c.Status(fiber.StatusNotFound).JSON(
+	// 		&model.WebResponse{
+	// 			Error:      true,
+	// 			StatusCode: fiber.StatusNotFound,
+	// 			Message:    "service_not_found",
+	// 		},
+	// 	)
+	// }
 
 	service, err := h.serviceService.GetServiceByCode(paramService)
 	if err != nil {
