@@ -261,7 +261,7 @@
             pubid = getUrlParameter('pubid');
             aff_sub = getUrlParameter('aff_sub');
 
-            if (msisdn.length > 8 && msisdn.length < 14) {
+            if (msisdn.length > 6 || msisdn.length < 15) {
               $.ajax({
                   type: 'POST',
                   url: app_url + '/v1/sub',
