@@ -19,11 +19,15 @@
             <!-- INPUT MSISDN -->
             <div id="form-msisdn">
                 <h5 class="mb-2 text-uppercase title">MASUKKAN NOMOR SELULER ANDA</h5>
-                <input
+
+                <div class="input-group input-group-lg flex-nowrap mb-3 w-100 shadow-sm shadow rounded-pill">
+                  <span class="input-group-text border-3 border-end-0" style="height: calc(2.645rem + 2px);">+62</span>
+                  <input
                     id="msisdn"
                     type="number"
-                    class="form-control form-control-lg shadow text-center rounded-pill border-2 mb-3"
-                    placeholder="XXXX" />
+                    class="form-control text-left border-3"
+                    placeholder="Masukan Nomor Anda" required/>
+                </div>
                 <input id="code" name="code" type="hidden" value="{{ .service_code }}" />
                 <input id="app_url" name="app_url" type="hidden" value="{{ .app_url }}" />
                 <div class="button-wrapper mx-auto">
@@ -250,20 +254,20 @@
 
             app_url = $("#app_url").val();
             service =  $("#code").val();
-            msisdn =  $("#msisdn").val();
+            msisdn =  parseInt($("#msisdn").val());
             keyword = getUrlParameter("keyword");
             subkey = getUrlParameter("subkey");
             adnet = getUrlParameter('ad');
             pubid = getUrlParameter('pubid');
             aff_sub = getUrlParameter('aff_sub');
 
-            if (msisdn.length > 8) {
+            if (msisdn.length > 8 && msisdn.length < 14) {
               $.ajax({
                   type: 'POST',
                   url: app_url + '/v1/sub',
                   data: JSON.stringify({
                       service: service,
-                      msisdn:  msisdn,
+                      msisdn:  "62" + msisdn,
                       // keyword: keyword,
                       // subkey: subkey,
                       // adnet: adnet,
@@ -329,7 +333,7 @@
 
             var app_url = $("#app_url").val();
             var service =  $("#code").val();
-            var msisdn =  $("#msisdn").val();
+            var msisdn = parseInt($("#msisdn").val());
             var pin = $("#pin").val();
 
             if (pin.length == 6) {
@@ -338,7 +342,7 @@
                     url: app_url + '/v1/otp',
                     data: JSON.stringify({
                         service: service,
-                        msisdn: msisdn,
+                        msisdn: "62" + msisdn,
                         pin: pin,
                     }),
                     dataType: 'json',

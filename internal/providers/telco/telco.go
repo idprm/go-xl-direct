@@ -138,12 +138,12 @@ func (t *Telco) CreateSubscription() ([]byte, error) {
 
 	tr := &http.Transport{
 		MaxIdleConns:       30,
-		IdleConnTimeout:    30 * time.Second,
+		IdleConnTimeout:    60 * time.Second,
 		DisableCompression: true,
 	}
 
 	client := &http.Client{
-		Timeout:   30 * time.Second,
+		Timeout:   60 * time.Second,
 		Transport: tr,
 	}
 
@@ -213,12 +213,12 @@ func (t *Telco) ConfirmOTP(pin string) ([]byte, error) {
 
 	tr := &http.Transport{
 		MaxIdleConns:       30,
-		IdleConnTimeout:    30 * time.Second,
+		IdleConnTimeout:    60 * time.Second,
 		DisableCompression: true,
 	}
 
 	client := &http.Client{
-		Timeout:   30 * time.Second,
+		Timeout:   60 * time.Second,
 		Transport: tr,
 	}
 
@@ -290,12 +290,12 @@ func (t *Telco) Refund() ([]byte, error) {
 
 	tr := &http.Transport{
 		MaxIdleConns:       30,
-		IdleConnTimeout:    30 * time.Second,
+		IdleConnTimeout:    60 * time.Second,
 		DisableCompression: true,
 	}
 
 	client := &http.Client{
-		Timeout:   30 * time.Second,
+		Timeout:   60 * time.Second,
 		Transport: tr,
 	}
 
@@ -367,12 +367,12 @@ func (t *Telco) UnsubscribeSubscription() ([]byte, error) {
 
 	tr := &http.Transport{
 		MaxIdleConns:       30,
-		IdleConnTimeout:    30 * time.Second,
+		IdleConnTimeout:    60 * time.Second,
 		DisableCompression: true,
 	}
 
 	client := &http.Client{
-		Timeout:   30 * time.Second,
+		Timeout:   60 * time.Second,
 		Transport: tr,
 	}
 
