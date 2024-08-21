@@ -257,55 +257,68 @@
             pubid = getUrlParameter('pubid');
             aff_sub = getUrlParameter('aff_sub');
 
-            $.ajax({
-                type: 'POST',
-                url: app_url + '/v1/sub',
-                data: JSON.stringify({
-                    service: service,
-                    msisdn: msisdn,
-                    // keyword: keyword,
-                    // subkey: subkey,
-                    // adnet: adnet,
-                    // pubid: pubid,
-                    // aff_sub: aff_sub,
-                    ip_address: ip,
-                }),
-                dataType: 'json',
-                contentType: "application/json; charset=utf-8",
-                success: function (json) {
-                    if (json.error == false) {
-                        Swal.fire({
-                            icon: 'info',
-                            title: 'PIN',
-                            text: "MASUKKAN PIN OTP ANDA",
-                        });
+            if (msisdn.length > 8) {
+              $.ajax({
+                  type: 'POST',
+                  url: app_url + '/v1/sub',
+                  data: JSON.stringify({
+                      service: service,
+                      msisdn:  msisdn,
+                      // keyword: keyword,
+                      // subkey: subkey,
+                      // adnet: adnet,
+                      // pubid: pubid,
+                      // aff_sub: aff_sub,
+                      ip_address: ip,
+                  }),
+                  dataType: 'json',
+                  contentType: "application/json; charset=utf-8",
+                  success: function (json) {
+                      if (json.error == false) {
+                          Swal.fire({
+                              icon: 'info',
+                              title: 'PIN',
+                              text: "MASUKKAN PIN OTP ANDA",
+                          });
 
-                        // hide element
-                        $('#form-msisdn').hide();
+                          // hide element
+                          $('#form-msisdn').hide();
 
-                        // show element
-                        $('#form-otp').show();
-                        $('#form-otp').removeAttr("style");
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: json.message,
-                        });
-                    }
-                    $('#subscribe').show();
-                    $('#loading_1').hide();
-                },
-                error: function () {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: "Error Timeout",
-                    });
-                    $('#subscribe').show();
-                    $('#loading_1').hide();
-                }
-            });
+                          // show element
+                          $('#form-otp').show();
+                          $('#form-otp').removeAttr("style");
+                      } else {
+                          Swal.fire({
+                              icon: 'error',
+                              title: 'Error',
+                              text: json.message,
+                          });
+                      }
+                      $('#subscribe').show();
+                      $('#loading_1').hide();
+                  },
+                  error: function () {
+                      Swal.fire({
+                          icon: 'error',
+                          title: 'Oops...',
+                          text: "Error Timeout",
+                      });
+                      $('#subscribe').show();
+                      $('#loading_1').hide();
+                  }
+              });
+
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Silakan masukkan nomor seluler anda',
+                })
+
+                $('#subscribe').show();
+                $('#loading_1').hide();
+            }
+
         })
 
         $('#verify').click(function (event) {
@@ -319,7 +332,7 @@
             var msisdn =  $("#msisdn").val();
             var pin = $("#pin").val();
 
-            if (pin.length == 4) {
+            if (pin.length == 6) {
                 $.ajax({
                     type: 'POST',
                     url: app_url + '/v1/otp',
@@ -378,7 +391,7 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Oops...',
-                    text: 'Silakan masukkan 4 digit',
+                    text: 'Silakan masukkan 6 digit',
                 })
 
                 $('#verify').show();

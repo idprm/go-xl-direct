@@ -101,15 +101,15 @@ func ValidateStruct(data interface{}) []*entity.ErrorResponse {
 func (h *IncomingHandler) LandingPage(c *fiber.Ctx) error {
 	paramService := strings.ToUpper(c.Params("service"))
 
-	// if !h.serviceService.IsServiceByCode(paramService) {
-	// 	return c.Status(fiber.StatusNotFound).JSON(
-	// 		&model.WebResponse{
-	// 			Error:      true,
-	// 			StatusCode: fiber.StatusNotFound,
-	// 			Message:    "service_not_found",
-	// 		},
-	// 	)
-	// }
+	if !h.serviceService.IsServiceByCode(paramService) {
+		return c.Status(fiber.StatusNotFound).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusNotFound,
+				Message:    "service_not_found",
+			},
+		)
+	}
 
 	service, err := h.serviceService.GetServiceByCode(paramService)
 	if err != nil {
@@ -214,6 +214,11 @@ func (h *IncomingHandler) CreateSubscription(c *fiber.Ctx) error {
 				Message:    err.Error(),
 			},
 		)
+	}
+
+	errors := ValidateStruct(*req)
+	if errors != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(errors)
 	}
 
 	l.WithFields(logrus.Fields{"request": req}).Info("CREATE_SUB")
@@ -323,6 +328,11 @@ func (h *IncomingHandler) ConfirmOTP(c *fiber.Ctx) error {
 		)
 	}
 
+	errors := ValidateStruct(*req)
+	if errors != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(errors)
+	}
+
 	l.WithFields(logrus.Fields{"request": req}).Info("CONFIRM_OTP")
 
 	if !h.serviceService.IsServiceByCode(req.GetService()) {
@@ -427,6 +437,11 @@ func (h *IncomingHandler) Refund(c *fiber.Ctx) error {
 		)
 	}
 
+	errors := ValidateStruct(*req)
+	if errors != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(errors)
+	}
+
 	l.WithFields(logrus.Fields{"request": req}).Info("REFUND")
 
 	if !h.serviceService.IsServiceByCode(req.GetService()) {
@@ -528,6 +543,11 @@ func (h *IncomingHandler) Unsubscribe(c *fiber.Ctx) error {
 				Message:    err.Error(),
 			},
 		)
+	}
+
+	errors := ValidateStruct(*req)
+	if errors != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(errors)
 	}
 
 	l.WithFields(logrus.Fields{"request": req}).Info("UNSUBSCRIBE")

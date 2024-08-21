@@ -323,8 +323,8 @@ type NotificationRefundRequest struct {
 }
 
 type WebSubRequest struct {
-	Msisdn    string `json:"msisdn"`
-	Service   string `json:"service"`
+	Msisdn    string `validate:"required" json:"msisdn"`
+	Service   string `validate:"required" json:"service"`
 	IpAddress string `json:"ip_address"`
 }
 
@@ -341,9 +341,9 @@ func (r *WebSubRequest) GetService() string {
 }
 
 type WebOTPRequest struct {
-	Msisdn  string `json:"msisdn"`
-	Service string `json:"service"`
-	Pin     string `json:"pin"`
+	Msisdn  string `validate:"required" json:"msisdn"`
+	Service string `validate:"required" json:"service"`
+	Pin     string `validate:"required" json:"pin"`
 }
 
 func (r *WebOTPRequest) GetMsisdn() string {
