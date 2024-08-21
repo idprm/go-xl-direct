@@ -254,20 +254,20 @@
 
             app_url = $("#app_url").val();
             service =  $("#code").val();
-            msisdn =  parseInt($("#msisdn").val());
+            msisdn = $("#msisdn").val();
             keyword = getUrlParameter("keyword");
             subkey = getUrlParameter("subkey");
             adnet = getUrlParameter('ad');
             pubid = getUrlParameter('pubid');
             aff_sub = getUrlParameter('aff_sub');
-
-            if (msisdn.length > 6 || msisdn.length < 15) {
+            
+            if (msisdn.length > 7 &&  msisdn.length < 15) {
               $.ajax({
                   type: 'POST',
                   url: app_url + '/v1/sub',
                   data: JSON.stringify({
                       service: service,
-                      msisdn:  "62" + msisdn,
+                      msisdn:  "62" + parseInt(msisdn),
                       // keyword: keyword,
                       // subkey: subkey,
                       // adnet: adnet,
@@ -333,7 +333,7 @@
 
             var app_url = $("#app_url").val();
             var service =  $("#code").val();
-            var msisdn = parseInt($("#msisdn").val());
+            var msisdn = $("#msisdn").val();
             var pin = $("#pin").val();
 
             if (pin.length == 6) {
@@ -342,7 +342,7 @@
                     url: app_url + '/v1/otp',
                     data: JSON.stringify({
                         service: service,
-                        msisdn: "62" + msisdn,
+                        msisdn: "62" + parseInt(msisdn),
                         pin: pin,
                     }),
                     dataType: 'json',
