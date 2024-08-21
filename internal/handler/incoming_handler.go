@@ -132,6 +132,16 @@ func (h *IncomingHandler) LandingPage(c *fiber.Ctx) error {
 	return c.Redirect(APP_URL)
 }
 
+func (h *IncomingHandler) Unsub(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusOK).JSON(
+		&model.WebResponse{
+			Error:      false,
+			StatusCode: fiber.StatusOK,
+			Message:    "OK",
+		},
+	)
+}
+
 func (h *IncomingHandler) Campaign(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(
 		&model.WebResponse{

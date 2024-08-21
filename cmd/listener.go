@@ -118,9 +118,7 @@ func routerUrl(db *sql.DB, rds *redis.Client, rmq rmqp.AMQP, logger *logger.Logg
 	// landing page
 	lp := r.Group("p")
 	lp.Get("/:service", h.LandingPage)
-	// staging
-	staging := r.Group("staging")
-	staging.Get("/p/:service", h.LandingPage)
+	lp.Get("/:service/unsub", h.Unsub)
 
 	// endpoint API
 	v1 := r.Group("v1")
@@ -130,6 +128,10 @@ func routerUrl(db *sql.DB, rds *redis.Client, rmq rmqp.AMQP, logger *logger.Logg
 	v1.Post("unsub", h.Unsubscribe)
 
 	r.Post("notify", h.MessageOriginated)
+
+	// staging
+	staging := r.Group("staging")
+	staging.Get("/p/:service", h.LandingPage)
 	staging.Post("/notify", h.MessageOriginated)
 
 	return r
