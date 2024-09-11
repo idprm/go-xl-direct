@@ -118,7 +118,7 @@
                             url: app_url + '/v1/unsub',
                             data: JSON.stringify({
                                 service: service,
-                                msisdn:  parseInt(msisdn),
+                                msisdn:  msisdn,
                                 // keyword: keyword,
                                 // subkey: subkey,
                                 // adnet: adnet,
@@ -168,7 +168,10 @@
                     }
                 })
             }
-
+            else {
+                $('#unsubscribe').hide();
+                $('#loading').show();
+            }
         });
     });
   </script>
