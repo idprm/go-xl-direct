@@ -169,6 +169,12 @@
                 })
             }
             else {
+                // not success
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: "Silakan isi nomor anda",
+                });
                 $('#unsubscribe').hide();
                 $('#loading').show();
             }
