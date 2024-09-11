@@ -242,12 +242,12 @@ func (m *NotificationRequest) GetAmount() float64 {
 }
 
 func (m *NotificationRequest) GetStartDate() time.Time {
-	date, _ := time.Parse("2006-01-02 15:04:05", m.StartDate)
+	date, _ := time.Parse(time.RFC3339, m.StartDate)
 	return date
 }
 
 func (m *NotificationRequest) GetNextRenewalDate() time.Time {
-	date, _ := time.Parse("2006-01-02 15:04:05", m.NextRenewalDate)
+	date, _ := time.Parse(time.RFC3339, m.NextRenewalDate)
 	return date
 }
 

@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="{{ .app_url }}/static/emagz/css/mdb.dark.min.css" />
     <link rel="stylesheet" href="{{ .app_url }}/static/emagz/css/style.css" />
-    <title>Subscribe EMAGZ</title>
+    <title>Unsubscribe EMAGZ</title>
   </head>
   <body>
     <div class="container-fluid box-wrapper text-center pb-3 mt-3">
@@ -86,7 +86,6 @@
 
             msisdn = getUrlParameter('msisdn');
 
-
             $('#unsubscribe').hide();
             $('#loading').show();
 
@@ -119,11 +118,6 @@
                             data: JSON.stringify({
                                 service: service,
                                 msisdn:  msisdn,
-                                // keyword: keyword,
-                                // subkey: subkey,
-                                // adnet: adnet,
-                                // pubid: pubid,
-                                // aff_sub: aff_sub,
                                 ip_address: ip,
                             }),
                             dataType: 'json',
@@ -139,7 +133,7 @@
                                     });
 
                                     setTimeout(function () {
-                                        window.location.href = json.redirect;
+                                        window.location.href = json.redirect_url;
                                     }, 2100);
 
                                 } else {
@@ -173,7 +167,7 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: "Silakan isi nomor anda",
+                    text: "Silakan isi nomor anda / Klik unsub via portal",
                 });
                 $('#unsubscribe').hide();
                 $('#loading').show();
