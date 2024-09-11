@@ -7,6 +7,7 @@ type History struct {
 	ServiceID int   `json:"service_id"`
 	Service   *Service
 	Msisdn    string    `json:"msisdn"`
+	SubID     int64     `json:"sub_id"`
 	Channel   string    `json:"channel"`
 	Adnet     string    `json:"adnet"`
 	Keyword   string    `json:"keyword"`

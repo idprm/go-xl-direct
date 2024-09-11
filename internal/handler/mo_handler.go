@@ -249,17 +249,16 @@ func (h *MOHandler) Unsub() {
 	h.subscriptionService.UpdateDisable(subscription)
 
 	// select data by service_id & msisdn
-	sub, err := h.subscriptionService.SelectSubscription(service.GetId(), h.req.GetUserIdentifier())
-	if err != nil {
-		log.Println(err)
-	}
-
+	// sub, err := h.subscriptionService.SelectSubscription(service.GetId(), h.req.GetUserIdentifier())
+	// if err != nil {
+	// 	log.Println(err)
+	// }
 	transaction := &entity.Transaction{
 		TxID:         h.req.GetTransactionId(),
 		ServiceID:    service.GetId(),
 		Msisdn:       h.req.GetUserIdentifier(),
 		Channel:      "",
-		Adnet:        sub.GetAdnet(),
+		Adnet:        "",
 		Keyword:      MO_UNREG + " " + service.GetCode(),
 		Status:       STATUS_SUCCESS,
 		StatusCode:   "",
@@ -273,7 +272,7 @@ func (h *MOHandler) Unsub() {
 		ServiceID: service.GetId(),
 		Msisdn:    h.req.GetUserIdentifier(),
 		Channel:   "",
-		Adnet:     sub.GetAdnet(),
+		Adnet:     "",
 		Keyword:   MO_UNREG + " " + service.GetCode(),
 		Subject:   SUBJECT_UNSUB,
 		Status:    STATUS_SUCCESS,
