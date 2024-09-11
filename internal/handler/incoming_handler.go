@@ -609,10 +609,10 @@ func (h *IncomingHandler) Unsubscribe(c *fiber.Ctx) error {
 	}
 
 	if !h.subscriptionService.IsActiveSubscription(service.GetId(), req.GetMsisdn()) {
-		return c.Status(fiber.StatusNotFound).JSON(
+		return c.Status(fiber.StatusOK).JSON(
 			&model.WebResponse{
 				Error:      true,
-				StatusCode: fiber.StatusNotFound,
+				StatusCode: fiber.StatusOK,
 				Message:    "msisdn_not_found_or_already_unsub",
 			},
 		)

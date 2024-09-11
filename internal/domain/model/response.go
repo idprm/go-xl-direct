@@ -2,9 +2,9 @@ package model
 
 type WebResponse struct {
 	Error       bool   `json:"error"`
-	StatusCode  int    `json:"status_code"`
-	Message     string `json:"message"`
-	RedirectUrl string `json:"redirect_url"`
+	StatusCode  int    `json:"status_code,omitempty"`
+	Message     string `json:"message,omitempty"`
+	RedirectUrl string `json:"redirect_url,omitempty"`
 }
 
 type OAuthResponse struct {
