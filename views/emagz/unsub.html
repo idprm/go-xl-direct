@@ -20,19 +20,21 @@
           <div class="row">
             <div class="col-6">
               <a
-                href="{{ .app_url }}"
+                href="{{ .app_url }}/p/emagz"
                 class="btn btn-transparent button w-100 rounded-pill"
                 id="redirect">
                 Tidak
               </a>
             </div>
             <div class="col-6">
-              <a
-                href="javascript:void(0)"
-                class="btn btn-transparent button-secondary w-100 rounded-pill"
-                id="unsubscribe">
-                Ya
-              </a>
+                <button
+                    class="btn btn-transparent button-secondary w-100 rounded-pill"
+                    id="unsubscribe">
+                    Ya
+                </button>
+                <div id="loading" class="spinner-border" role="status" style="display: none;">
+                    <span class="sr-only">Loading...</span>
+                </div>
             </div>
             <input id="code" name="code" type="hidden" value="{{ .service_code }}" />
             <input id="app_url" name="app_url" type="hidden" value="{{ .app_url }}" />
@@ -51,6 +53,7 @@
 
   <script>
     $(document).ready(function () {
+
         $('#unsubscribe').click(function (event) {
             event.preventDefault();
 
@@ -82,6 +85,10 @@
             service =  $("#code").val();
 
             msisdn = getUrlParameter('msisdn');
+
+
+            $('#unsubscribe').hide();
+            $('#loading').show();
 
             if (msisdn) {
                 Swal.fire({
@@ -134,6 +141,7 @@
                                     setTimeout(function () {
                                         window.location.href = json.redirect;
                                     }, 2100);
+
                                 } else {
                                     // not success
                                     Swal.fire({
@@ -142,6 +150,9 @@
                                         text: json.message,
                                     });
                                 }
+
+                                $('#unsubscribe').show();
+                                $('#loading').hide();
                             },
                             error: function () {
                                 Swal.fire({
@@ -149,6 +160,9 @@
                                     title: 'Oops...',
                                     text: "Timeout",
                                 });
+                                
+                                $('#unsubscribe').show();
+                                $('#loading').hide();
                             }
                         });
                     }
