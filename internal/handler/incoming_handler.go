@@ -132,22 +132,47 @@ func (h *IncomingHandler) LandingPage(c *fiber.Ctx) error {
 	return c.Redirect(APP_URL)
 }
 
-func (h *IncomingHandler) Unsub(c *fiber.Ctx) error {
-	return c.Status(fiber.StatusOK).JSON(
-		&model.WebResponse{
-			Error:      false,
-			StatusCode: fiber.StatusOK,
-			Message:    "OK",
-		},
-	)
+func (h *IncomingHandler) UnsubPage(c *fiber.Ctx) error {
+	paramService := strings.ToUpper(c.Params("service"))
+
+	if !h.serviceService.IsServiceByCode(paramService) {
+		return c.Status(fiber.StatusNotFound).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusNotFound,
+				Message:    "service_not_found",
+			},
+		)
+	}
+
+	service, err := h.serviceService.GetServiceByCode(paramService)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusInternalServerError,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	if service.IsEmagz() {
+		return c.Render("emagz/unsub", fiber.Map{
+			"app_url":      APP_URL,
+			"service_code": paramService,
+		})
+	}
+
+	return c.Redirect(APP_URL)
 }
 
 func (h *IncomingHandler) Campaign(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(
 		&model.WebResponse{
-			Error:      false,
-			StatusCode: fiber.StatusOK,
-			Message:    "OK",
+			Error:       false,
+			StatusCode:  fiber.StatusOK,
+			Message:     "OK",
+			RedirectUrl: APP_URL,
 		},
 	)
 }
@@ -638,9 +663,10 @@ func (h *IncomingHandler) Unsubscribe(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(
 		&model.WebResponse{
-			Error:      false,
-			StatusCode: fiber.StatusOK,
-			Message:    resp.GetStatus(),
+			Error:       false,
+			StatusCode:  fiber.StatusOK,
+			Message:     resp.GetStatus(),
+			RedirectUrl: APP_URL,
 		},
 	)
 }

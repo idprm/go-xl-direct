@@ -1,0 +1,161 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{{ .app_url }}/static/emagz/css/mdb.dark.min.css" />
+    <link rel="stylesheet" href="{{ .app_url }}/static/emagz/css/style.css" />
+    <title>Subscribe EMAGZ</title>
+  </head>
+  <body>
+    <div class="container-fluid box-wrapper text-center pb-3 mt-3">
+      <div class="content-box box-subs unsubs mb-3">
+        <div>
+          <img src="{{ .app_url }}/static/emagz/img/logo-emagz.png" class="logo-emagz" alt="" />
+          <h5 class="mb-2 text-uppercase title mb-4">
+            Apakah Anda ingin berhenti berlangganan?
+          </h5>
+          <div class="row">
+            <div class="col-6">
+              <a
+                href="{{ .app_url }}"
+                class="btn btn-transparent button w-100 rounded-pill"
+                id="redirect">
+                Tidak
+              </a>
+            </div>
+            <div class="col-6">
+              <a
+                href="javascript:void(0)"
+                class="btn btn-transparent button-secondary w-100 rounded-pill"
+                id="unsubscribe">
+                Ya
+              </a>
+            </div>
+            <input id="code" name="code" type="hidden" value="{{ .service_code }}" />
+            <input id="app_url" name="app_url" type="hidden" value="{{ .app_url }}" />
+          </div>
+          <div class="button-wrapper mx-auto"></div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script
+    src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+    crossorigin="anonymous"></script>
+  <script src="{{ .app_url }}/static/emagz/js/mdb.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+    $(document).ready(function () {
+        $('#unsubscribe').click(function (event) {
+            event.preventDefault();
+
+            var ip = "";
+            $.getJSON("https://api.ipify.org/?format=json", function (e) {
+                ip = e.ip;
+            });
+
+            var getUrlParameter = function getUrlParameter(sParam) {
+                var sPageURL = window.location.search.substring(1),
+                    sURLVariables = sPageURL.split('&'),
+                    sParameterName,
+                    i;
+
+                for (i = 0; i < sURLVariables.length; i++) {
+                    sParameterName = sURLVariables[i].split('=');
+
+                    if (sParameterName[0] === sParam) {
+                        return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+                    }
+                }
+                return "";
+            };
+            
+            var app_url = ""
+            var service = ""
+
+            app_url = $("#app_url").val();
+            service =  $("#code").val();
+
+            msisdn = getUrlParameter('msisdn');
+
+            if (msisdn) {
+                Swal.fire({
+                    title: "Apakah yakin?",
+                    text: "Apakah Anda ingin berhenti berlangganan",
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sim',
+                    allowOutsideClick: false,
+                }).then((result) => {
+                    if (result.value) {
+                        Swal.fire({
+                            title: 'Harap tunggu!',
+                            html: 'Proses...',
+                            showConfirmButton: false,
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            didOpen: () => {
+                                Swal.showLoading()
+                            },
+                        });
+
+                        $.ajax({
+                            type: 'POST',
+                            url: app_url + '/v1/unsub',
+                            data: JSON.stringify({
+                                service: service,
+                                msisdn:  parseInt(msisdn),
+                                // keyword: keyword,
+                                // subkey: subkey,
+                                // adnet: adnet,
+                                // pubid: pubid,
+                                // aff_sub: aff_sub,
+                                ip_address: ip,
+                            }),
+                            dataType: 'json',
+                            contentType: "application/json; charset=utf-8",
+                            success: function (json) {
+                                if (json.error == false) {
+
+                                    // success
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Sukses',
+                                        text: json.message,
+                                    });
+
+                                    setTimeout(function () {
+                                        window.location.href = json.redirect;
+                                    }, 2100);
+                                } else {
+                                    // not success
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: json.message,
+                                    });
+                                }
+                            },
+                            error: function () {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Oops...',
+                                    text: "Timeout",
+                                });
+                            }
+                        });
+                    }
+                })
+            }
+
+        });
+    });
+  </script>
+</html>
