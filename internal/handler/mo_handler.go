@@ -9,6 +9,7 @@ import (
 	"github.com/idprm/go-xl-direct/internal/domain/model"
 	"github.com/idprm/go-xl-direct/internal/logger"
 	"github.com/idprm/go-xl-direct/internal/services"
+	"github.com/idprm/go-xl-direct/internal/utils"
 	"github.com/wiliehidayat87/rmqp"
 )
 
@@ -53,7 +54,7 @@ func NewMOHandler(
 
 func (h *MOHandler) Firstpush() {
 
-	// trxId := utils.GenerateTrxId()
+	trxId := utils.GenerateTrxId()
 
 	service, err := h.getService()
 	if err != nil {
@@ -70,7 +71,7 @@ func (h *MOHandler) Firstpush() {
 		Category:      service.GetCategory(),
 		Msisdn:        h.req.GetUserIdentifier(),
 		SubID:         h.req.GetSubscriptionId(),
-		LatestTrxId:   verify.GetTrxId(),
+		LatestTrxId:   trxId,
 		LatestKeyword: MO_REG + " " + service.GetCode(),
 		LatestSubject: SUBJECT_FIRSTPUSH,
 		Channel:       "",
@@ -88,7 +89,7 @@ func (h *MOHandler) Firstpush() {
 		subSuccess := &entity.Subscription{
 			ServiceID:            service.GetId(),
 			Msisdn:               h.req.GetUserIdentifier(),
-			LatestTrxId:          verify.GetTrxId(),
+			LatestTrxId:          trxId,
 			LatestSubject:        SUBJECT_FIRSTPUSH,
 			LatestStatus:         STATUS_SUCCESS,
 			LatestPIN:            "",
@@ -104,7 +105,7 @@ func (h *MOHandler) Firstpush() {
 		h.subscriptionService.UpdateSuccess(subSuccess)
 
 		transSuccess := &entity.Transaction{
-			TxID:         verify.GetTrxId(),
+			TxID:         trxId,
 			ServiceID:    service.GetId(),
 			Msisdn:       h.req.GetUserIdentifier(),
 			SubID:        h.req.GetSubscriptionId(),
@@ -159,7 +160,7 @@ func (h *MOHandler) Firstpush() {
 		subFailed := &entity.Subscription{
 			ServiceID:     service.GetId(),
 			Msisdn:        h.req.GetUserIdentifier(),
-			LatestTrxId:   verify.GetTrxId(),
+			LatestTrxId:   trxId,
 			LatestSubject: SUBJECT_FIRSTPUSH,
 			LatestStatus:  STATUS_FAILED,
 			RenewalAt:     time.Now().AddDate(0, 0, 1),
@@ -171,7 +172,7 @@ func (h *MOHandler) Firstpush() {
 		h.subscriptionService.UpdateFailed(subFailed)
 
 		transFailed := &entity.Transaction{
-			TxID:         verify.GetTrxId(),
+			TxID:         trxId,
 			ServiceID:    service.GetId(),
 			Msisdn:       h.req.GetUserIdentifier(),
 			SubID:        h.req.GetSubscriptionId(),
