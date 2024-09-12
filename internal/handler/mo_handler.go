@@ -76,7 +76,7 @@ func (h *MOHandler) Firstpush() {
 		LatestSubject: SUBJECT_FIRSTPUSH,
 		Channel:       "",
 		IsActive:      true,
-		IpAddress:     verify.GetIpAddress(),
+		IpAddress:     "",
 	}
 
 	if h.IsSub() {
