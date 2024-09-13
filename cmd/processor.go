@@ -3,6 +3,7 @@ package cmd
 import (
 	"database/sql"
 	"encoding/json"
+	"log"
 	"sync"
 
 	"github.com/idprm/go-xl-direct/internal/domain/entity"
@@ -121,6 +122,9 @@ func (p *Processor) Renewal(wg *sync.WaitGroup, message []byte) {
 
 	var req *model.NotificationRequest
 	json.Unmarshal([]byte(message), &req)
+
+	log.Println("in_processor_renewal")
+	log.Println(req)
 
 	h := handler.NewRenewalHandler(
 		p.rmq,

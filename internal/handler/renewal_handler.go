@@ -42,6 +42,9 @@ func NewRenewalHandler(
 
 func (h *RenewalHandler) Dailypush() {
 
+	log.Println("in_renewal_handler")
+	log.Println(h.req)
+
 	trxId := utils.GenerateTrxId()
 
 	service, err := h.serviceService.GetServiceByProductId(h.req.ProductId)

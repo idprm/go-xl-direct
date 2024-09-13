@@ -303,6 +303,9 @@ func (h *MOHandler) Unsub() {
 }
 
 func (h *MOHandler) Renewal() {
+
+	log.Println("in_mo_handler_renewal")
+	log.Println(h.req)
 	jsonData, err := json.Marshal(h.req)
 	if err != nil {
 		log.Println(err.Error())
