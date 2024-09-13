@@ -41,6 +41,8 @@ var (
 	RMQ_MO_QUEUE           string = "Q_" + RMQ_PREFIX + "_MO"
 	RMQ_RENEWAL_EXCHANGE   string = "E_" + RMQ_PREFIX + "_RENEWAL"
 	RMQ_RENEWAL_QUEUE      string = "Q_" + RMQ_PREFIX + "_RENEWAL"
+	RMQ_REFUND_EXCHANGE    string = "E_" + RMQ_PREFIX + "_REFUND"
+	RMQ_REFUND_QUEUE       string = "Q_" + RMQ_PREFIX + "_REFUND"
 	RMQ_NOTIF_EXCHANGE     string = "E_" + RMQ_PREFIX + "_NOTIF"
 	RMQ_NOTIF_QUEUE        string = "Q_" + RMQ_PREFIX + "_NOTIF"
 	RMQ_PB_MO_EXCHANGE     string = "E_" + RMQ_PREFIX + "_POSTBACK_MO"
@@ -83,6 +85,7 @@ func init() {
 	 */
 	rootCmd.AddCommand(consumerMOCmd)
 	rootCmd.AddCommand(consumerRenewalCmd)
+	rootCmd.AddCommand(consumerRefundCmd)
 	rootCmd.AddCommand(consumerPostbackMOCmd)
 	rootCmd.AddCommand(consumerPostbackMTCmd)
 	rootCmd.AddCommand(consumerNotifCmd)

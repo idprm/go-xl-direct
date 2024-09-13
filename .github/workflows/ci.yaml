@@ -26,6 +26,8 @@ jobs:
             image: idprm/xl-direct-pub-upload-csv-service
           - dockerfile: ./Dockerfile.renewal
             image: idprm/xl-direct-renewal-service
+          - dockerfile: ./Dockerfile.refund
+            image: idprm/xl-direct-refund-service
           - dockerfile: ./Dockerfile.notif
             image: idprm/xl-direct-notif-service
           - dockerfile: ./Dockerfile.traffic

@@ -9,6 +9,7 @@ import (
 	"github.com/idprm/go-xl-direct/internal/domain/model"
 	"github.com/idprm/go-xl-direct/internal/logger"
 	"github.com/idprm/go-xl-direct/internal/services"
+	"github.com/idprm/go-xl-direct/internal/utils"
 	"github.com/wiliehidayat87/rmqp"
 )
 
@@ -40,6 +41,8 @@ func NewRenewalHandler(
 }
 
 func (h *RenewalHandler) Dailypush() {
+
+	trxId := utils.GenerateTrxId()
 
 	service, err := h.serviceService.GetServiceByProductId(h.req.ProductId)
 	if err != nil {
@@ -119,7 +122,7 @@ func (h *RenewalHandler) Dailypush() {
 			subFailed := &entity.Subscription{
 				ServiceID:     service.GetId(),
 				Msisdn:        h.req.GetUserIdentifier(),
-				LatestTrxId:   h.req.GetTransactionId(),
+				LatestTrxId:   trxId,
 				LatestSubject: SUBJECT_RENEWAL,
 				LatestStatus:  STATUS_FAILED,
 				RenewalAt:     time.Now().AddDate(0, 0, 1),
@@ -131,7 +134,7 @@ func (h *RenewalHandler) Dailypush() {
 			h.subscriptionService.UpdateFailed(subFailed)
 
 			transFailed := &entity.Transaction{
-				TxID:           h.req.GetTransactionId(),
+				TxID:           trxId,
 				ServiceID:      service.GetId(),
 				Msisdn:         h.req.GetUserIdentifier(),
 				SubID:          h.req.GetSubscriptionId(),

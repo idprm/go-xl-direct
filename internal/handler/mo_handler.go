@@ -89,7 +89,7 @@ func (h *MOHandler) Firstpush() {
 		subSuccess := &entity.Subscription{
 			ServiceID:            service.GetId(),
 			Msisdn:               h.req.GetUserIdentifier(),
-			LatestTrxId:          trxId,
+			LatestTrxId:          h.req.GetTransactionId(),
 			LatestSubject:        SUBJECT_FIRSTPUSH,
 			LatestStatus:         STATUS_SUCCESS,
 			LatestPIN:            "",
@@ -226,10 +226,11 @@ func (h *MOHandler) Firstpush() {
 			string(jsonData),
 		)
 	}
-
 }
 
 func (h *MOHandler) Unsub() {
+
+	trxId := utils.GenerateTrxId()
 
 	service, err := h.getService()
 	if err != nil {
@@ -240,7 +241,7 @@ func (h *MOHandler) Unsub() {
 		ServiceID:     service.GetId(),
 		Msisdn:        h.req.GetUserIdentifier(),
 		Channel:       "",
-		LatestTrxId:   h.req.GetTransactionId(),
+		LatestTrxId:   trxId,
 		LatestKeyword: MO_UNREG + " " + service.GetCode(),
 		LatestSubject: SUBJECT_UNSUB,
 		LatestStatus:  STATUS_SUCCESS,
@@ -257,7 +258,7 @@ func (h *MOHandler) Unsub() {
 	// 	log.Println(err)
 	// }
 	transaction := &entity.Transaction{
-		TxID:         h.req.GetTransactionId(),
+		TxID:         trxId,
 		ServiceID:    service.GetId(),
 		Msisdn:       h.req.GetUserIdentifier(),
 		Channel:      "",
@@ -301,10 +302,6 @@ func (h *MOHandler) Unsub() {
 	)
 }
 
-func (h *MOHandler) getService() (*entity.Service, error) {
-	return h.serviceService.GetServiceByProductId(h.req.GetProductId())
-}
-
 func (h *MOHandler) Renewal() {
 	jsonData, err := json.Marshal(h.req)
 	if err != nil {
@@ -319,7 +316,16 @@ func (h *MOHandler) Renewal() {
 }
 
 func (h *MOHandler) Refund() {
-	log.Println(h.req)
+	jsonData, err := json.Marshal(h.req)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	h.rmq.IntegratePublish(
+		RMQ_REFUND_EXCHANGE,
+		RMQ_REFUND_QUEUE,
+		RMQ_DATA_TYPE, "", string(jsonData),
+	)
 }
 
 func (h *MOHandler) IsSub() bool {
@@ -328,4 +334,12 @@ func (h *MOHandler) IsSub() bool {
 		log.Println(err)
 	}
 	return h.subscriptionService.IsSubscription(service.GetId(), h.req.GetUserIdentifier())
+}
+
+func (h *MOHandler) IsService() bool {
+	return h.serviceService.IsServiceByProductId(h.req.GetProductId())
+}
+
+func (h *MOHandler) getService() (*entity.Service, error) {
+	return h.serviceService.GetServiceByProductId(h.req.GetProductId())
 }

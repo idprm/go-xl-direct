@@ -49,6 +49,7 @@ var consumerMOCmd = &cobra.Command{
 		 */
 		rmq.SetUpChannel(RMQ_EXCHANGE_TYPE, true, RMQ_MO_EXCHANGE, true, RMQ_MO_QUEUE)
 		rmq.SetUpChannel(RMQ_EXCHANGE_TYPE, true, RMQ_RENEWAL_EXCHANGE, true, RMQ_RENEWAL_QUEUE)
+		rmq.SetUpChannel(RMQ_EXCHANGE_TYPE, true, RMQ_REFUND_EXCHANGE, true, RMQ_REFUND_QUEUE)
 		rmq.SetUpChannel(RMQ_EXCHANGE_TYPE, true, RMQ_NOTIF_EXCHANGE, true, RMQ_NOTIF_QUEUE)
 		rmq.SetUpChannel(RMQ_EXCHANGE_TYPE, true, RMQ_PB_MO_EXCHANGE, true, RMQ_PB_MO_QUEUE)
 
@@ -63,7 +64,7 @@ var consumerMOCmd = &cobra.Command{
 		// Loop forever listening incoming data
 		forever := make(chan bool)
 
-		processor := NewProcessor(db, rds, rmq, logger)
+		p := NewProcessor(db, rds, rmq, logger)
 
 		// Set into goroutine this listener
 		go func() {
@@ -72,7 +73,7 @@ var consumerMOCmd = &cobra.Command{
 			for d := range messagesData {
 
 				wg.Add(1)
-				processor.MO(&wg, d.Body)
+				p.MO(&wg, d.Body)
 				wg.Wait()
 
 				// Manual consume queue
@@ -132,7 +133,7 @@ var consumerRenewalCmd = &cobra.Command{
 		forever := make(chan bool)
 
 		// don't open redis connection if not needed
-		processor := NewProcessor(db, &redis.Client{}, rmq, logger)
+		p := NewProcessor(db, &redis.Client{}, rmq, logger)
 
 		// Set into goroutine this listener
 		go func() {
@@ -141,7 +142,74 @@ var consumerRenewalCmd = &cobra.Command{
 			for d := range messagesData {
 
 				wg.Add(1)
-				processor.Renewal(&wg, d.Body)
+				p.Renewal(&wg, d.Body)
+				wg.Wait()
+
+				// Manual consume queue
+				d.Ack(false)
+
+			}
+
+		}()
+
+		fmt.Println("[*] Waiting for data...")
+
+		<-forever
+	},
+}
+
+var consumerRefundCmd = &cobra.Command{
+	Use:   "refund",
+	Short: "Consumer Refund Service CLI",
+	Long:  ``,
+	Run: func(cmd *cobra.Command, args []string) {
+		/**
+		 * SETUP PGSQL
+		 */
+		db, err := connectPgsql()
+		if err != nil {
+			panic(err)
+		}
+
+		/**
+		 * SETUP RMQ
+		 */
+		rmq, err := connectRabbitMq()
+		if err != nil {
+			panic(err)
+		}
+
+		/**
+		 * SETUP LOG
+		 */
+		logger := logger.NewLogger()
+
+		/**
+		 * SETUP CHANNEL
+		 */
+		rmq.SetUpChannel(RMQ_EXCHANGE_TYPE, true, RMQ_REFUND_EXCHANGE, true, RMQ_REFUND_QUEUE)
+
+		messagesData, errSub := rmq.Subscribe(1, false, RMQ_REFUND_QUEUE, RMQ_REFUND_EXCHANGE, RMQ_REFUND_QUEUE)
+		if errSub != nil {
+			panic(errSub)
+		}
+		// Initial sync waiting group
+		var wg sync.WaitGroup
+
+		// Loop forever listening incoming data
+		forever := make(chan bool)
+
+		// don't open redis connection if not needed
+		p := NewProcessor(db, &redis.Client{}, rmq, logger)
+
+		// Set into goroutine this listener
+		go func() {
+
+			// Loop every incoming data
+			for d := range messagesData {
+
+				wg.Add(1)
+				p.Refund(&wg, d.Body)
 				wg.Wait()
 
 				// Manual consume queue
@@ -192,7 +260,7 @@ var consumerPostbackMOCmd = &cobra.Command{
 		forever := make(chan bool)
 
 		// don't open db connection if not needed
-		processor := NewProcessor(&sql.DB{}, &redis.Client{}, rmq, logger)
+		p := NewProcessor(&sql.DB{}, &redis.Client{}, rmq, logger)
 
 		// Set into goroutine this listener
 		go func() {
@@ -201,7 +269,7 @@ var consumerPostbackMOCmd = &cobra.Command{
 			for d := range messagesData {
 
 				wg.Add(1)
-				processor.PostbackMO(&wg, d.Body)
+				p.PostbackMO(&wg, d.Body)
 				wg.Wait()
 
 				// Manual consume queue
@@ -251,7 +319,7 @@ var consumerPostbackMTCmd = &cobra.Command{
 		forever := make(chan bool)
 
 		// don't open db connection if not needed
-		processor := NewProcessor(&sql.DB{}, &redis.Client{}, rmq, logger)
+		p := NewProcessor(&sql.DB{}, &redis.Client{}, rmq, logger)
 
 		// Set into goroutine this listener
 		go func() {
@@ -260,7 +328,7 @@ var consumerPostbackMTCmd = &cobra.Command{
 			for d := range messagesData {
 
 				wg.Add(1)
-				processor.PostbackMT(&wg, d.Body)
+				p.PostbackMT(&wg, d.Body)
 				wg.Wait()
 
 				// Manual consume queue
@@ -310,7 +378,7 @@ var consumerNotifCmd = &cobra.Command{
 		forever := make(chan bool)
 
 		// don't open db and redis connection if not needed
-		processor := NewProcessor(&sql.DB{}, &redis.Client{}, rmq, logger)
+		p := NewProcessor(&sql.DB{}, &redis.Client{}, rmq, logger)
 
 		// Set into goroutine this listener
 		go func() {
@@ -319,7 +387,7 @@ var consumerNotifCmd = &cobra.Command{
 			for d := range messagesData {
 
 				wg.Add(1)
-				processor.Notif(&wg, d.Body)
+				p.Notif(&wg, d.Body)
 				wg.Wait()
 
 				// Manual consume queue
@@ -377,7 +445,7 @@ var consumerTrafficCmd = &cobra.Command{
 		// Loop forever listening incoming data
 		forever := make(chan bool)
 
-		processor := NewProcessor(db, &redis.Client{}, rmq, logger)
+		p := NewProcessor(db, &redis.Client{}, rmq, logger)
 
 		// Set into goroutine this listener
 		go func() {
@@ -386,7 +454,7 @@ var consumerTrafficCmd = &cobra.Command{
 			for d := range messagesData {
 
 				wg.Add(1)
-				processor.Traffic(&wg, d.Body)
+				p.Traffic(&wg, d.Body)
 				wg.Wait()
 
 				// Manual consume queue
@@ -443,7 +511,7 @@ var consumerDailypushCmd = &cobra.Command{
 		// Loop forever listening incoming data
 		forever := make(chan bool)
 
-		processor := NewProcessor(db, &redis.Client{}, rmq, logger)
+		p := NewProcessor(db, &redis.Client{}, rmq, logger)
 
 		// Set into goroutine this listener
 		go func() {
@@ -452,7 +520,7 @@ var consumerDailypushCmd = &cobra.Command{
 			for d := range messagesData {
 
 				wg.Add(1)
-				processor.Dailypush(&wg, d.Body)
+				p.Dailypush(&wg, d.Body)
 				wg.Wait()
 
 				// Manual consume queue

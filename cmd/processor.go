@@ -3,7 +3,6 @@ package cmd
 import (
 	"database/sql"
 	"encoding/json"
-	"log"
 	"sync"
 
 	"github.com/idprm/go-xl-direct/internal/domain/entity"
@@ -78,36 +77,34 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 		req,
 	)
 
-	log.Println(req)
-	if req.IsSubscription() {
-		log.Println("is_subscription")
-		if req.IsActive() {
-			h.Firstpush()
-			log.Println("is_subscription_fp")
+	// check service by product Id
+	if h.IsService() {
+		// filter SUB
+		if req.IsSubscription() {
+			if req.IsActive() {
+				h.Firstpush()
+			}
+
+			if req.IsCancelled() {
+				h.Unsub()
+			}
 		}
 
-		if req.IsCancelled() {
-			log.Println("is_subscription_unsub")
-			h.Unsub()
-		}
-	}
+		// filter RENEWAL
+		if req.IsRenewal() {
+			if req.IsActive() {
+				h.Renewal()
+			}
 
-	if req.IsRenewal() {
-		log.Println("is_renewal")
-		if req.IsActive() {
-			log.Println("is_renewal_active")
-			h.Renewal()
+			if req.IsCancelled() {
+				h.Unsub()
+			}
 		}
 
-		if req.IsCancelled() {
-			log.Println("is_renewal_unsub")
-			h.Unsub()
+		// filter REFUND
+		if req.IsRefund() {
+			h.Refund()
 		}
-	}
-
-	if req.IsRefund() {
-		log.Println("is_refund")
-		h.Refund()
 	}
 
 	wg.Done()
@@ -125,7 +122,7 @@ func (p *Processor) Renewal(wg *sync.WaitGroup, message []byte) {
 	var req *model.NotificationRequest
 	json.Unmarshal([]byte(message), &req)
 
-	handler.NewRenewalHandler(
+	h := handler.NewRenewalHandler(
 		p.rmq,
 		p.logger,
 		serviceService,
@@ -133,6 +130,34 @@ func (p *Processor) Renewal(wg *sync.WaitGroup, message []byte) {
 		transactionService,
 		req,
 	)
+
+	h.Dailypush()
+
+	wg.Done()
+}
+
+func (p *Processor) Refund(wg *sync.WaitGroup, message []byte) {
+
+	serviceRepo := repository.NewServiceRepository(p.db)
+	serviceService := services.NewServiceService(serviceRepo)
+	subscriptionRepo := repository.NewSubscriptionRepository(p.db)
+	subscriptionService := services.NewSubscriptionService(subscriptionRepo)
+	transactionRepo := repository.NewTransactionRepository(p.db)
+	transactionService := services.NewTransactionService(transactionRepo)
+
+	var req *model.NotificationRequest
+	json.Unmarshal([]byte(message), &req)
+
+	h := handler.NewRefundHandler(
+		p.rmq,
+		p.logger,
+		serviceService,
+		subscriptionService,
+		transactionService,
+		req,
+	)
+
+	h.Refund()
 
 	wg.Done()
 }
@@ -166,6 +191,8 @@ func (p *Processor) PostbackMT(wg *sync.WaitGroup, message []byte) {
 }
 
 func (p *Processor) Notif(wg *sync.WaitGroup, message []byte) {
+	var req *entity.NotifParamsRequest
+	json.Unmarshal(message, &req)
 
 	wg.Done()
 }
