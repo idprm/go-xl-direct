@@ -55,7 +55,7 @@ func (h *RenewalHandler) Dailypush() {
 	// check if active sub
 	if h.subscriptionService.IsActiveSubscription(service.GetId(), h.req.GetUserIdentifier()) {
 
-		service, err := h.serviceService.GetServiceByCode(h.req.GetProductId())
+		service, err := h.serviceService.GetServiceByProductId(h.req.GetProductId())
 		if err != nil {
 			log.Println(err.Error())
 		}
