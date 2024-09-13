@@ -3,6 +3,7 @@ package cmd
 import (
 	"database/sql"
 	"encoding/json"
+	"log"
 	"sync"
 
 	"github.com/idprm/go-xl-direct/internal/domain/entity"
@@ -77,29 +78,35 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 		req,
 	)
 
+	log.Println(req)
 	if req.IsSubscription() {
-
+		log.Println("is_subscription")
 		if req.IsActive() {
 			h.Firstpush()
+			log.Println("is_subscription_fp")
 		}
 
 		if req.IsCancelled() {
+			log.Println("is_subscription_unsub")
 			h.Unsub()
 		}
 	}
 
 	if req.IsRenewal() {
-
+		log.Println("is_renewal")
 		if req.IsActive() {
+			log.Println("is_renewal_active")
 			h.Renewal()
 		}
 
 		if req.IsCancelled() {
+			log.Println("is_renewal_unsub")
 			h.Unsub()
 		}
 	}
 
 	if req.IsRefund() {
+		log.Println("is_refund")
 		h.Refund()
 	}
 
