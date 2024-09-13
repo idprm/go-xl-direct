@@ -118,6 +118,7 @@ func (h *MOHandler) Firstpush() {
 			StatusDetail: "",
 			Subject:      SUBJECT_FIRSTPUSH,
 			Payload:      "",
+			IpAddress:    "",
 		}
 		if verify != nil {
 			transSuccess.IpAddress = verify.GetIpAddress()
@@ -183,6 +184,7 @@ func (h *MOHandler) Firstpush() {
 			StatusDetail: "",
 			Subject:      SUBJECT_FIRSTPUSH,
 			Payload:      "",
+			IpAddress:    "",
 		}
 		if verify != nil {
 			transFailed.IpAddress = verify.GetIpAddress()
