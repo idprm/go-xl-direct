@@ -108,14 +108,15 @@ func (t *Telco) CreateSubscription() ([]byte, error) {
 	start := time.Now()
 	trxId := utils.GenerateTrxId()
 
-	jsonData, err := json.Marshal(
-		&model.CreateSubscriptionRequest{
-			RequestId:      trxId,
-			ProductId:      t.service.GetProductId(),
-			UserIdentifier: t.verify.GetMsisdn(),
-			Amount:         strconv.FormatFloat(t.service.GetPrice(), 'f', 0, 64),
-		},
-	)
+	r := &model.CreateSubscriptionRequest{
+		RequestId:      trxId,
+		ProductId:      t.service.GetProductId(),
+		UserIdentifier: t.verify.GetMsisdn(),
+		Amount:         t.service.GetPriceToString(),
+	}
+	r.SetPartnerId(t.service.GetSidMt())
+
+	jsonData, err := json.Marshal(r)
 	if err != nil {
 		return nil, err
 	}

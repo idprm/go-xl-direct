@@ -47,6 +47,11 @@ func (h *RefundHandler) Refund() {
 		log.Println(err)
 	}
 
+	sub, err := h.subscriptionService.SelectSubscription(service.GetId(), h.req.GetUserIdentifier())
+	if err != nil {
+		log.Println(err)
+	}
+
 	h.subscriptionService.UpdateLatest(
 		&entity.Subscription{
 			ServiceID:     service.GetId(),
@@ -63,8 +68,8 @@ func (h *RefundHandler) Refund() {
 		ServiceID:      service.GetId(),
 		Msisdn:         h.req.GetUserIdentifier(),
 		SubID:          h.req.GetSubscriptionId(),
-		Channel:        "",
-		Adnet:          "",
+		Channel:        sub.GetChannel(),
+		Adnet:          sub.GetAdnet(),
 		Keyword:        SUBJECT_REFUND,
 		Amount:         h.req.GetAmount(),
 		PIN:            "",
@@ -73,9 +78,9 @@ func (h *RefundHandler) Refund() {
 		StatusDetail:   "",
 		Subject:        SUBJECT_REFUND,
 		Payload:        "",
-		CampKeyword:    "",
-		CampSubKeyword: "",
-		IpAddress:      "",
+		CampKeyword:    sub.GetCampKeyword(),
+		CampSubKeyword: sub.GetCampSubKeyword(),
+		IpAddress:      sub.GetIpAddress(),
 	}
 
 	h.transactionService.SaveTransaction(transSuccess)

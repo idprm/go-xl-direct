@@ -60,6 +60,11 @@ func (h *RenewalHandler) Dailypush() {
 			log.Println(err.Error())
 		}
 
+		sub, err := h.subscriptionService.SelectSubscription(service.GetId(), h.req.GetUserIdentifier())
+		if err != nil {
+			log.Println(err)
+		}
+
 		if h.req.IsActive() {
 			subSuccess := &entity.Subscription{
 				ServiceID:          service.GetId(),
@@ -85,8 +90,8 @@ func (h *RenewalHandler) Dailypush() {
 				ServiceID:      service.GetId(),
 				Msisdn:         h.req.GetUserIdentifier(),
 				SubID:          h.req.GetSubscriptionId(),
-				Channel:        "",
-				Adnet:          "",
+				Channel:        sub.GetChannel(),
+				Adnet:          sub.GetAdnet(),
 				Keyword:        MO_REG + " " + service.GetCode(),
 				Amount:         h.req.GetAmount(),
 				PIN:            "",
@@ -95,9 +100,9 @@ func (h *RenewalHandler) Dailypush() {
 				StatusDetail:   "",
 				Subject:        SUBJECT_RENEWAL,
 				Payload:        "",
-				CampKeyword:    "",
-				CampSubKeyword: "",
-				IpAddress:      "",
+				CampKeyword:    sub.GetCampKeyword(),
+				CampSubKeyword: sub.GetCampSubKeyword(),
+				IpAddress:      sub.GetIpAddress(),
 			}
 
 			h.transactionService.SaveTransaction(transSuccess)
@@ -141,17 +146,17 @@ func (h *RenewalHandler) Dailypush() {
 				ServiceID:      service.GetId(),
 				Msisdn:         h.req.GetUserIdentifier(),
 				SubID:          h.req.GetSubscriptionId(),
-				Channel:        "",
-				Adnet:          "",
+				Channel:        sub.GetChannel(),
+				Adnet:          sub.GetAdnet(),
 				Keyword:        MO_REG + " " + service.GetCode(),
 				Status:         STATUS_FAILED,
 				StatusCode:     "",
 				StatusDetail:   "",
 				Subject:        SUBJECT_RENEWAL,
 				Payload:        "",
-				CampKeyword:    "",
-				CampSubKeyword: "",
-				IpAddress:      "",
+				CampKeyword:    sub.GetCampKeyword(),
+				CampSubKeyword: sub.GetCampSubKeyword(),
+				IpAddress:      sub.GetIpAddress(),
 			}
 			h.transactionService.SaveTransaction(transFailed)
 		}

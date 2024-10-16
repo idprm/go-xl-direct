@@ -1,5 +1,7 @@
 package entity
 
+import "strconv"
+
 type Service struct {
 	ID                  int     `json:"id"`
 	Category            string  `json:"category"`
@@ -45,6 +47,10 @@ func (s *Service) GetPackage() string {
 
 func (s *Service) GetPrice() float64 {
 	return s.Price
+}
+
+func (s *Service) GetPriceToString() string {
+	return strconv.FormatFloat(s.GetPrice(), 'f', 0, 64)
 }
 
 func (s *Service) GetProductId() string {

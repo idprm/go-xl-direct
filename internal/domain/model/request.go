@@ -165,10 +165,17 @@ type OAuthRequest struct {
 }
 
 type CreateSubscriptionRequest struct {
-	RequestId      string `json:"requestId"`
-	ProductId      string `json:"productId"`
-	UserIdentifier string `json:"userIdentifier"`
-	Amount         string `json:"amount"`
+	RequestId       string `json:"requestId"`
+	ProductId       string `json:"productId"`
+	UserIdentifier  string `json:"userIdentifier"`
+	Amount          string `json:"amount"`
+	TransactionInfo struct {
+		PartnerId string `json:"partnerId"`
+	} `json:"transactionInfo"`
+}
+
+func (m *CreateSubscriptionRequest) SetPartnerId(v string) {
+	m.TransactionInfo.PartnerId = v
 }
 
 type ConfirmOTPRequest struct {

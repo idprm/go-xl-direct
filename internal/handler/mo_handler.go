@@ -253,16 +253,16 @@ func (h *MOHandler) Unsub() {
 	h.subscriptionService.UpdateDisable(subscription)
 
 	// select data by service_id & msisdn
-	// sub, err := h.subscriptionService.SelectSubscription(service.GetId(), h.req.GetUserIdentifier())
-	// if err != nil {
-	// 	log.Println(err)
-	// }
+	sub, err := h.subscriptionService.SelectSubscription(service.GetId(), h.req.GetUserIdentifier())
+	if err != nil {
+		log.Println(err)
+	}
 	transaction := &entity.Transaction{
 		TxID:         trxId,
 		ServiceID:    service.GetId(),
 		Msisdn:       h.req.GetUserIdentifier(),
-		Channel:      "",
-		Adnet:        "",
+		Channel:      sub.GetChannel(),
+		Adnet:        sub.GetAdnet(),
 		Keyword:      MO_UNREG + " " + service.GetCode(),
 		Status:       STATUS_SUCCESS,
 		StatusCode:   "",
@@ -275,8 +275,8 @@ func (h *MOHandler) Unsub() {
 	history := &entity.History{
 		ServiceID: service.GetId(),
 		Msisdn:    h.req.GetUserIdentifier(),
-		Channel:   "",
-		Adnet:     "",
+		Channel:   sub.GetChannel(),
+		Adnet:     sub.GetAdnet(),
 		Keyword:   MO_UNREG + " " + service.GetCode(),
 		Subject:   SUBJECT_UNSUB,
 		Status:    STATUS_SUCCESS,
@@ -303,9 +303,6 @@ func (h *MOHandler) Unsub() {
 }
 
 func (h *MOHandler) Renewal() {
-
-	log.Println("in_mo_handler_renewal")
-	log.Println(h.req)
 	jsonData, err := json.Marshal(h.req)
 	if err != nil {
 		log.Println(err.Error())
