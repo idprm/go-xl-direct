@@ -21,7 +21,7 @@ import (
 var (
 	TELCO_URL           string = utils.GetEnv("TELCO_URL")
 	TELCO_CLIENT_ID     string = utils.GetEnv("TELCO_CLIENT_ID")
-	TELCO_SECRET_SECRET string = utils.GetEnv("TELCO_SECRET_SECRET")
+	TELCO_CLIENT_SECRET string = utils.GetEnv("TELCO_CLIENT_SECRET")
 	TELCO_GRANT_TYPE    string = utils.GetEnv("TELCO_GRANT_TYPE")
 )
 
@@ -63,7 +63,7 @@ func (t *Telco) OAuth() ([]byte, error) {
 	var p = url.Values{}
 
 	p.Add("client_id", TELCO_CLIENT_ID)
-	p.Add("client_secret", TELCO_SECRET_SECRET)
+	p.Add("client_secret", TELCO_CLIENT_SECRET)
 	p.Add("grant_type", TELCO_GRANT_TYPE)
 
 	req, err := http.NewRequest(http.MethodPost, TELCO_URL+"/oauth2/token", strings.NewReader(p.Encode()))
