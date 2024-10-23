@@ -53,8 +53,8 @@ type ITelco interface {
 	OAuth() ([]byte, error)
 	CreateSubscription() ([]byte, error)
 	ConfirmOTP(string) ([]byte, error)
-	Refund() ([]byte, error)
 	UnsubscribeSubscription() ([]byte, error)
+	Refund() ([]byte, error)
 	Notification() ([]byte, error)
 }
 
@@ -186,12 +186,12 @@ func (t *Telco) ConfirmOTP(pin string) ([]byte, error) {
 	trxId := utils.GenerateTrxId()
 
 	urlTelco := TELCO_URL + "/subscription/" + t.verify.GetMsisdn() + "/" + t.service.GetProductId() + "/otp/confirm"
-	jsonData, err := json.Marshal(
-		&model.ConfirmOTPRequest{
-			RequestId: trxId,
-			PIN:       pin,
-		},
-	)
+	r := &model.ConfirmOTPRequest{
+		RequestId: trxId,
+		PIN:       pin,
+	}
+	r.SetPartnerId(t.service.GetSidMt())
+	jsonData, err := json.Marshal(r)
 	if err != nil {
 		return nil, err
 	}
@@ -256,83 +256,6 @@ func (t *Telco) ConfirmOTP(pin string) ([]byte, error) {
 	return body, nil
 }
 
-func (t *Telco) Refund() ([]byte, error) {
-	l := t.logger.Init("mt", true)
-
-	start := time.Now()
-	trxId := utils.GenerateTrxId()
-
-	urlTelco := TELCO_URL + "/subscription/" + t.subscription.GetMsisdn() + "/" + t.service.GetProductId() + "/refund"
-	jsonData, err := json.Marshal(
-		&model.RefundRequest{
-			RequestId:     trxId,
-			TransactionId: t.subscription.GetLatestTrxId(),
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-	req, err := http.NewRequest(http.MethodPost, urlTelco, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return nil, err
-	}
-
-	oauth, err := t.OAuth()
-	if err != nil {
-		return nil, err
-	}
-
-	var respOauth model.OAuthResponse
-	json.Unmarshal(oauth, &respOauth)
-
-	var bearer = "Bearer " + respOauth.GetAccessToken()
-	req.Header.Add("Authorization", bearer)
-	req.Header.Set("Content-Type", "application/json")
-
-	tr := &http.Transport{
-		MaxIdleConns:       30,
-		IdleConnTimeout:    60 * time.Second,
-		DisableCompression: true,
-	}
-
-	client := &http.Client{
-		Timeout:   60 * time.Second,
-		Transport: tr,
-	}
-
-	t.logger.Writer(req)
-	l.WithFields(logrus.Fields{
-		"msisdn":  t.subscription.GetMsisdn(),
-		"request": req,
-		"trx_id":  trxId,
-	}).Info("REFUND")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	duration := time.Since(start).Milliseconds()
-	t.logger.Writer(string(body))
-	l.WithFields(logrus.Fields{
-		"msisdn":      t.subscription.GetMsisdn(),
-		"response":    string(body),
-		"trx_id":      trxId,
-		"duration":    duration,
-		"status_code": resp.StatusCode,
-		"status_text": http.StatusText(resp.StatusCode),
-	}).Info("REFUND")
-
-	return body, nil
-}
-
 func (t *Telco) UnsubscribeSubscription() ([]byte, error) {
 	l := t.logger.Init("mt", true)
 
@@ -340,12 +263,12 @@ func (t *Telco) UnsubscribeSubscription() ([]byte, error) {
 	trxId := utils.GenerateTrxId()
 
 	urlTelco := TELCO_URL + "/subscription/" + t.subscription.GetMsisdn() + "/" + t.service.GetProductId()
-	jsonData, err := json.Marshal(
-		&model.RefundRequest{
-			RequestId:     trxId,
-			TransactionId: t.subscription.GetLatestTrxId(),
-		},
-	)
+	r := &model.UnsubscribeRequest{
+		RequestId: trxId,
+	}
+	r.SetPartnerId(t.service.GetSidMt())
+
+	jsonData, err := json.Marshal(r)
 	if err != nil {
 		return nil, err
 	}
@@ -406,6 +329,84 @@ func (t *Telco) UnsubscribeSubscription() ([]byte, error) {
 		"status_code": resp.StatusCode,
 		"status_text": http.StatusText(resp.StatusCode),
 	}).Info("UNSUB")
+
+	return body, nil
+}
+
+func (t *Telco) Refund() ([]byte, error) {
+	l := t.logger.Init("mt", true)
+
+	start := time.Now()
+	trxId := utils.GenerateTrxId()
+
+	urlTelco := TELCO_URL + "/subscription/" + t.subscription.GetMsisdn() + "/" + t.service.GetProductId() + "/refund"
+	r := &model.RefundRequest{
+		RequestId:     trxId,
+		TransactionId: t.subscription.GetLatestTrxId(),
+	}
+	r.SetPartnerId(t.service.GetSidMt())
+
+	jsonData, err := json.Marshal(r)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest(http.MethodPost, urlTelco, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+
+	oauth, err := t.OAuth()
+	if err != nil {
+		return nil, err
+	}
+
+	var respOauth model.OAuthResponse
+	json.Unmarshal(oauth, &respOauth)
+
+	var bearer = "Bearer " + respOauth.GetAccessToken()
+	req.Header.Add("Authorization", bearer)
+	req.Header.Set("Content-Type", "application/json")
+
+	tr := &http.Transport{
+		MaxIdleConns:       30,
+		IdleConnTimeout:    60 * time.Second,
+		DisableCompression: true,
+	}
+
+	client := &http.Client{
+		Timeout:   60 * time.Second,
+		Transport: tr,
+	}
+
+	t.logger.Writer(req)
+	l.WithFields(logrus.Fields{
+		"msisdn":  t.subscription.GetMsisdn(),
+		"request": req,
+		"trx_id":  trxId,
+	}).Info("REFUND")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	duration := time.Since(start).Milliseconds()
+	t.logger.Writer(string(body))
+	l.WithFields(logrus.Fields{
+		"msisdn":      t.subscription.GetMsisdn(),
+		"response":    string(body),
+		"trx_id":      trxId,
+		"duration":    duration,
+		"status_code": resp.StatusCode,
+		"status_text": http.StatusText(resp.StatusCode),
+	}).Info("REFUND")
 
 	return body, nil
 }

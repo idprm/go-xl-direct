@@ -179,8 +179,11 @@ func (m *CreateSubscriptionRequest) SetPartnerId(v string) {
 }
 
 type ConfirmOTPRequest struct {
-	RequestId string `json:"requestId"`
-	PIN       string `json:"pin"`
+	RequestId       string `json:"requestId"`
+	PIN             string `json:"pin"`
+	TransactionInfo struct {
+		PartnerId string `json:"partnerId"`
+	} `json:"transactionInfo"`
 }
 
 func (r *ConfirmOTPRequest) GetRequestId() string {
@@ -199,9 +202,16 @@ func (r *ConfirmOTPRequest) SetPIN(val string) {
 	r.PIN = val
 }
 
+func (m *ConfirmOTPRequest) SetPartnerId(v string) {
+	m.TransactionInfo.PartnerId = v
+}
+
 type RefundRequest struct {
-	RequestId     string `json:"requestId"`
-	TransactionId string `json:"transactionId"`
+	RequestId       string `json:"requestId"`
+	TransactionId   string `json:"transactionId"`
+	TransactionInfo struct {
+		PartnerId string `json:"partnerId"`
+	} `json:"transactionInfo"`
 }
 
 func (r *RefundRequest) SetRequestId(val string) {
@@ -212,12 +222,23 @@ func (r *RefundRequest) SetTransactionId(val string) {
 	r.TransactionId = val
 }
 
+func (m *RefundRequest) SetPartnerId(v string) {
+	m.TransactionInfo.PartnerId = v
+}
+
 type UnsubscribeRequest struct {
-	RequestId string `json:"requestId"`
+	RequestId       string `json:"requestId"`
+	TransactionInfo struct {
+		PartnerId string `json:"partnerId"`
+	} `json:"transactionInfo"`
 }
 
 func (r *UnsubscribeRequest) SetRequestId(val string) {
 	r.RequestId = val
+}
+
+func (m *UnsubscribeRequest) SetPartnerId(v string) {
+	m.TransactionInfo.PartnerId = v
 }
 
 type NotificationRequest struct {
