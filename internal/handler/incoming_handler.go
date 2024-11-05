@@ -128,7 +128,7 @@ func (h *IncomingHandler) LandingPage(c *fiber.Ctx) error {
 
 	if service.IsEmagz() {
 		return c.Render("emagz/sub", fiber.Map{
-			"app_url":      APP_URL,
+			"app_url":      c.BaseURL(),
 			"service_code": paramService,
 		})
 	}
@@ -162,7 +162,7 @@ func (h *IncomingHandler) UnsubPage(c *fiber.Ctx) error {
 
 	if service.IsEmagz() {
 		return c.Render("emagz/unsub", fiber.Map{
-			"app_url":      APP_URL,
+			"app_url":      c.BaseURL(),
 			"service_code": paramService,
 		})
 	}
