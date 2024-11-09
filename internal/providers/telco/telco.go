@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -85,8 +84,6 @@ func (t *Telco) OAuth() ([]byte, error) {
 		Transport: tr,
 	}
 
-	log.Println(req)
-
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -150,7 +147,8 @@ func (t *Telco) CreateSubscription() ([]byte, error) {
 
 	t.logger.Writer(req)
 	l.WithFields(logrus.Fields{
-		"request": req,
+		"request": TELCO_URL + "/subscription/create",
+		"body":    string(jsonData),
 		"trx_id":  trxId,
 	}).Info("CREATE_SUB")
 
@@ -226,7 +224,8 @@ func (t *Telco) ConfirmOTP(pin string) ([]byte, error) {
 	t.logger.Writer(req)
 	l.WithFields(logrus.Fields{
 		"msisdn":  t.verify.GetMsisdn(),
-		"request": req,
+		"request": urlTelco,
+		"body":    string(jsonData),
 		"trx_id":  trxId,
 	}).Info("CONFIRM_OTP")
 
@@ -303,7 +302,8 @@ func (t *Telco) UnsubscribeSubscription() ([]byte, error) {
 	t.logger.Writer(req)
 	l.WithFields(logrus.Fields{
 		"msisdn":  t.subscription.GetMsisdn(),
-		"request": req,
+		"request": urlTelco,
+		"body":    string(jsonData),
 		"trx_id":  trxId,
 	}).Info("UNSUB")
 
@@ -381,7 +381,8 @@ func (t *Telco) Refund() ([]byte, error) {
 	t.logger.Writer(req)
 	l.WithFields(logrus.Fields{
 		"msisdn":  t.subscription.GetMsisdn(),
-		"request": req,
+		"request": urlTelco,
+		"body":    string(jsonData),
 		"trx_id":  trxId,
 	}).Info("REFUND")
 
