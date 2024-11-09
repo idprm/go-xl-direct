@@ -3,6 +3,8 @@ package model
 import (
 	"strings"
 	"time"
+
+	"github.com/idprm/go-xl-direct/internal/domain/entity"
 )
 
 type CampaignDirectQueryRequest struct {
@@ -384,4 +386,31 @@ func (r *WebOTPRequest) GetService() string {
 
 func (r *WebOTPRequest) GetPin() string {
 	return r.Pin
+}
+
+type NotifParamsRequest struct {
+	Subscription *entity.Subscription
+	Service      *entity.Service
+	Action       string `json:"action"`
+	Pin          string `json:"pin"`
+}
+
+func (e *NotifParamsRequest) GetAction() string {
+	return strings.ToUpper(e.Action)
+}
+
+func (e *NotifParamsRequest) IsSub() bool {
+	return e.GetAction() == "SUB"
+}
+
+func (e *NotifParamsRequest) IsRenewal() bool {
+	return e.GetAction() == "RENEWAL"
+}
+
+func (e *NotifParamsRequest) IsUnsub() bool {
+	return e.GetAction() == "UNSUB"
+}
+
+func (e *NotifParamsRequest) GetPin() string {
+	return strings.ToLower(e.Pin)
 }

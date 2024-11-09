@@ -195,8 +195,25 @@ func (p *Processor) PostbackMT(wg *sync.WaitGroup, message []byte) {
 }
 
 func (p *Processor) Notif(wg *sync.WaitGroup, message []byte) {
-	var req *entity.NotifParamsRequest
+	var req *model.NotifParamsRequest
 	json.Unmarshal(message, &req)
+
+	h := handler.NewNotifHandler(
+		p.logger,
+		req,
+	)
+
+	if req.IsSub() {
+		h.Sub()
+	}
+
+	if req.IsRenewal() {
+		h.Renewal()
+	}
+
+	if req.IsUnsub() {
+		h.Unsub()
+	}
 
 	wg.Done()
 }

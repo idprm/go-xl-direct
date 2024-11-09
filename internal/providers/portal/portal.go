@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/idprm/go-xl-direct/internal/domain/entity"
@@ -44,13 +45,8 @@ func (p *Portal) Subscription() ([]byte, error) {
 	trxId := utils.GenerateTrxId()
 
 	q := url.Values{}
-	q.Add("telco", "telkomsel")
-	q.Add("msisdn", p.subscription.Msisdn)
-	q.Add("event", "reg")
-	q.Add("password", p.pin)
-	q.Add("package", "daily")
-	q.Add("status", p.status)
-	q.Add("time", time.Now().String())
+	q.Add("msisdn", p.subscription.GetMsisdn())
+	q.Add("package", strconv.Itoa(p.service.GetRenewalDay()))
 
 	req, err := http.NewRequest("GET", p.service.UrlNotifSub+"?"+q.Encode(), nil)
 	if err != nil {
@@ -107,9 +103,7 @@ func (p *Portal) Unsubscription() ([]byte, error) {
 	trxId := utils.GenerateTrxId()
 
 	q := url.Values{}
-	q.Add("telco", "telkomsel")
-	q.Add("msisdn", p.subscription.Msisdn)
-	q.Add("event", "unreg")
+	q.Add("msisdn", p.subscription.GetMsisdn())
 
 	req, err := http.NewRequest("GET", p.service.UrlNotifUnsub+"?"+q.Encode(), nil)
 	if err != nil {
@@ -167,12 +161,8 @@ func (p *Portal) Renewal() ([]byte, error) {
 	trxId := utils.GenerateTrxId()
 
 	q := url.Values{}
-	q.Add("telco", "telkomsel")
-	q.Add("msisdn", p.subscription.Msisdn)
-	q.Add("event", "renewal")
-	q.Add("password", p.pin)
-	q.Add("package", "daily")
-	q.Add("status", p.status)
+	q.Add("msisdn", p.subscription.GetMsisdn())
+	q.Add("package", strconv.Itoa(p.service.GetRenewalDay()))
 
 	req, err := http.NewRequest("GET", p.service.UrlNotifRenewal+"?"+q.Encode(), nil)
 
