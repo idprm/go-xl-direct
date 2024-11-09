@@ -670,7 +670,7 @@ func (h *IncomingHandler) Unsubscribe(c *fiber.Ctx) error {
 			Error:       false,
 			StatusCode:  fiber.StatusOK,
 			Message:     resp.GetStatus(),
-			RedirectUrl: APP_URL,
+			RedirectUrl: service.GetUrlPortal(),
 		},
 	)
 }
