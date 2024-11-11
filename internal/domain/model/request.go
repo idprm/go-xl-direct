@@ -388,6 +388,14 @@ func (r *WebOTPRequest) GetPin() string {
 	return r.Pin
 }
 
+type WebUnRegRequest struct {
+	Msisdn string `query:"msisdn" json:"msisdn"`
+}
+
+func (r *WebUnRegRequest) GetMsisdn() string {
+	return r.Msisdn
+}
+
 type NotifParamsRequest struct {
 	Subscription *entity.Subscription
 	Service      *entity.Service

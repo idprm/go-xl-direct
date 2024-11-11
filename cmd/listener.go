@@ -119,6 +119,7 @@ func routerUrl(db *sql.DB, rds *redis.Client, rmq rmqp.AMQP, logger *logger.Logg
 	lp := r.Group("p")
 	lp.Get("/:service", h.LandingPage)
 	lp.Get("/:service/unsub", h.UnsubPage)
+	lp.Get("/:service/unreg", h.UnRegPage)
 
 	// endpoint API
 	v1 := r.Group("v1")

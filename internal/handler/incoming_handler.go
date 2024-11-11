@@ -170,6 +170,88 @@ func (h *IncomingHandler) UnsubPage(c *fiber.Ctx) error {
 	return c.Redirect(APP_URL)
 }
 
+func (h *IncomingHandler) UnRegPage(c *fiber.Ctx) error {
+
+	req := new(model.WebUnRegRequest)
+
+	err := c.QueryParser(req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusBadRequest,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	paramService := strings.ToUpper(c.Params("service"))
+
+	if !h.serviceService.IsServiceByCode(paramService) {
+		return c.Status(fiber.StatusNotFound).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusNotFound,
+				Message:    "service_not_found",
+			},
+		)
+	}
+
+	service, err := h.serviceService.GetServiceByCode(paramService)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusInternalServerError,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	if !h.subscriptionService.IsActiveSubscription(service.GetId(), req.GetMsisdn()) {
+		return c.Redirect(service.GetUrlPortal())
+	}
+
+	subscription, err := h.subscriptionService.SelectSubscription(service.GetId(), req.GetMsisdn())
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusBadGateway,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	t := telco.NewTelco(
+		h.logger,
+		service,
+		subscription,
+		&entity.Session{},
+		&entity.Verify{},
+	)
+
+	mt, err := t.UnsubscribeSubscription()
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(
+			&model.WebResponse{
+				Error:      true,
+				StatusCode: fiber.StatusBadGateway,
+				Message:    err.Error(),
+			},
+		)
+	}
+
+	var resp model.TelcoResponse
+	json.Unmarshal(mt, &resp)
+
+	if !resp.IsSuccess() {
+		return c.Redirect(service.GetUrlPortal())
+	}
+
+	return c.Redirect(service.GetUrlPortal())
+}
+
 func (h *IncomingHandler) Campaign(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(
 		&model.WebResponse{
