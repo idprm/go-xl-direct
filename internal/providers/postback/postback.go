@@ -37,14 +37,14 @@ func (p *Postback) Send() ([]byte, error) {
 	start := time.Now()
 	trxId := utils.GenerateTrxId()
 
-	q := url.Values{}
-	q.Add("partner", "linkitxl")
-	q.Add("px", p.subscription.GetAdnet())
-	q.Add("serv_id", p.service.GetCode())
-	q.Add("msisdn", p.subscription.GetMsisdn())
-	q.Add("trxid", p.subscription.GetLatestTrxId())
+	p.service.SetUrlPostback(
+		p.service.GetCode(),
+		p.subscription.GetMsisdn(),
+		p.subscription.GetLatestTrxId(),
+		p.subscription.GetAdnet(),
+	)
 
-	req, err := http.NewRequest("GET", p.service.UrlPostback+"?"+q.Encode(), nil)
+	req, err := http.NewRequest("GET", p.service.GetUrlPostback(), nil)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
@@ -63,7 +63,7 @@ func (p *Postback) Send() ([]byte, error) {
 	p.logger.Writer(req)
 	l.WithFields(logrus.Fields{
 		"msisdn":  p.subscription.Msisdn,
-		"request": p.service.UrlPostback + "?" + q.Encode(),
+		"request": p.service.GetUrlPostback(),
 		"trx_id":  trxId,
 	}).Info("POSTBACK")
 

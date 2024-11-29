@@ -1,6 +1,10 @@
 package entity
 
-import "strconv"
+import (
+	"net/url"
+	"strconv"
+	"strings"
+)
 
 type Service struct {
 	ID                  int     `json:"id"`
@@ -99,6 +103,16 @@ func (s *Service) GetUrlNotifRenewal() string {
 
 func (s *Service) GetUrlPostback() string {
 	return s.UrlPostback
+}
+
+func (s *Service) SetUrlPostback(service, msisdn, trxid, clickid string) {
+	replacer := strings.NewReplacer(
+		"{service}", url.QueryEscape(service),
+		"{msisdn}", url.QueryEscape(msisdn),
+		"{trxid}", url.QueryEscape(trxid),
+		"{clickid}", url.QueryEscape(clickid),
+	)
+	s.UrlPostback = replacer.Replace(s.UrlPostback)
 }
 
 func (s *Service) GetUrlPostbackBillable() string {
