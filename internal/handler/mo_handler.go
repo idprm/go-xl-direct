@@ -213,9 +213,7 @@ func (h *MOHandler) Firstpush() {
 				Verify:       verify,
 				Subscription: subscription,
 				Service:      service,
-				Action:       "MT",
-				Status:       "",
-				IsSuccess:    false,
+				Action:       "MO",
 			},
 		)
 		h.rmq.IntegratePublish(
