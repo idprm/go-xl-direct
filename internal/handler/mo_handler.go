@@ -261,7 +261,7 @@ func (h *MOHandler) Unsub() {
 		TxID:         trxId,
 		ServiceID:    service.GetId(),
 		Msisdn:       h.req.GetUserIdentifier(),
-		Channel:      sub.GetChannel(),
+		Channel:      "",
 		Adnet:        sub.GetAdnet(),
 		Keyword:      MO_UNREG + " " + service.GetCode(),
 		Status:       STATUS_SUCCESS,
