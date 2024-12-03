@@ -221,10 +221,7 @@
             ip = e.ip;
         });
 
-        $('#subscribe').click(function (event) {
-            event.preventDefault();
-
-            var getUrlParameter = function getUrlParameter(sParam) {
+        var getUrlParameter = function getUrlParameter(sParam) {
                 var sPageURL = window.location.search.substring(1),
                     sURLVariables = sPageURL.split('&'),
                     sParameterName,
@@ -239,6 +236,9 @@
                 }
                 return "";
             };
+
+        $('#subscribe').click(function (event) {
+            event.preventDefault();
 
             $('#subscribe').hide();
             $('#loading_1').show();
