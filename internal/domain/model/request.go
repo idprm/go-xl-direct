@@ -353,9 +353,15 @@ type NotificationRefundRequest struct {
 }
 
 type WebSubRequest struct {
-	Msisdn    string `validate:"required" json:"msisdn"`
-	Service   string `validate:"required" json:"service"`
-	IpAddress string `json:"ip_address"`
+	Service    string `validate:"required" json:"service"`
+	Msisdn     string `validate:"required" json:"msisdn"`
+	Channel    string `json:"channel"`
+	Keyword    string `json:"keyword"`
+	SubKeyword string `json:"subkey"`
+	Adnet      string `json:"adnet"`
+	PubId      string `json:"pubid"`
+	AffSub     string `json:"aff_sub"`
+	IpAddress  string `json:"ip_address"`
 }
 
 func (r *WebSubRequest) SetIpAddress(val string) {
@@ -371,9 +377,16 @@ func (r *WebSubRequest) GetService() string {
 }
 
 type WebOTPRequest struct {
-	Msisdn  string `validate:"required" json:"msisdn"`
-	Service string `validate:"required" json:"service"`
-	Pin     string `validate:"required" json:"pin"`
+	Msisdn     string `validate:"required" json:"msisdn"`
+	Service    string `validate:"required" json:"service"`
+	Pin        string `validate:"required" json:"pin"`
+	Channel    string `json:"channel"`
+	Keyword    string `json:"keyword"`
+	SubKeyword string `json:"subkey"`
+	Adnet      string `json:"adnet"`
+	PubId      string `json:"pubid"`
+	AffSub     string `json:"aff_sub"`
+	IpAddress  string `json:"ip_address"`
 }
 
 func (r *WebOTPRequest) GetMsisdn() string {

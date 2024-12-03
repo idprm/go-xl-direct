@@ -61,7 +61,7 @@ func (h *MOHandler) Firstpush() {
 		log.Println(err)
 	}
 
-	verify, err := h.verifyService.Get(h.req.GetUserIdentifier())
+	verify, err := h.verifyService.Get(h.req.GetTransactionId())
 	if err != nil {
 		log.Println(err)
 	}
@@ -76,7 +76,16 @@ func (h *MOHandler) Firstpush() {
 		LatestSubject: SUBJECT_FIRSTPUSH,
 		Channel:       "",
 		IsActive:      true,
-		IpAddress:     "",
+	}
+
+	if verify != nil {
+		subscription.Channel = verify.Channel
+		subscription.Adnet = verify.Adnet
+		subscription.PubID = verify.PubID
+		subscription.AffSub = verify.AffSub
+		subscription.CampKeyword = verify.Keyword
+		subscription.CampSubKeyword = verify.SubKeyword
+		subscription.IpAddress = verify.IpAddress
 	}
 
 	if h.IsSub() {
@@ -102,6 +111,10 @@ func (h *MOHandler) Firstpush() {
 			TotalAmountFirstpush: h.req.GetAmount(),
 			LatestPayload:        "",
 		}
+		if verify != nil {
+			subSuccess.Channel = verify.Channel
+			subSuccess.LatestPIN = verify.PIN
+		}
 		h.subscriptionService.UpdateSuccess(subSuccess)
 
 		transSuccess := &entity.Transaction{
@@ -121,6 +134,13 @@ func (h *MOHandler) Firstpush() {
 			IpAddress:    "",
 		}
 		if verify != nil {
+			transSuccess.Channel = verify.Channel
+			transSuccess.CampKeyword = verify.Keyword
+			transSuccess.CampSubKeyword = verify.SubKeyword
+			transSuccess.Adnet = verify.Adnet
+			transSuccess.PubID = verify.PubID
+			transSuccess.AffSub = verify.AffSub
+			transSuccess.PIN = verify.PIN
 			transSuccess.IpAddress = verify.GetIpAddress()
 		}
 		h.transactionService.SaveTransaction(transSuccess)
@@ -128,6 +148,7 @@ func (h *MOHandler) Firstpush() {
 		historySuccess := &entity.History{
 			ServiceID: service.GetId(),
 			Msisdn:    h.req.GetUserIdentifier(),
+			SubID:     h.req.GetSubscriptionId(),
 			Channel:   "",
 			Keyword:   MO_REG + " " + service.GetCode(),
 			Subject:   SUBJECT_FIRSTPUSH,
@@ -135,6 +156,8 @@ func (h *MOHandler) Firstpush() {
 		}
 
 		if verify != nil {
+			historySuccess.Channel = verify.Channel
+			historySuccess.Adnet = verify.Adnet
 			historySuccess.IpAddress = verify.GetIpAddress()
 		}
 
@@ -187,6 +210,13 @@ func (h *MOHandler) Firstpush() {
 			IpAddress:    "",
 		}
 		if verify != nil {
+			transFailed.Channel = verify.Channel
+			transFailed.CampKeyword = verify.Keyword
+			transFailed.CampSubKeyword = verify.SubKeyword
+			transFailed.Adnet = verify.Adnet
+			transFailed.PubID = verify.PubID
+			transFailed.AffSub = verify.AffSub
+			transFailed.PIN = verify.PIN
 			transFailed.IpAddress = verify.GetIpAddress()
 		}
 		h.transactionService.SaveTransaction(transFailed)
@@ -194,12 +224,15 @@ func (h *MOHandler) Firstpush() {
 		historyFailed := &entity.History{
 			ServiceID: service.GetId(),
 			Msisdn:    h.req.GetUserIdentifier(),
+			SubID:     h.req.GetSubscriptionId(),
 			Channel:   "",
 			Keyword:   MO_REG + " " + service.GetCode(),
 			Subject:   SUBJECT_FIRSTPUSH,
 			Status:    STATUS_FAILED,
 		}
 		if verify != nil {
+			historyFailed.Adnet = verify.Adnet
+			historyFailed.Channel = verify.Channel
 			historyFailed.IpAddress = verify.GetIpAddress()
 		}
 		h.historyService.SaveHistory(historyFailed)
@@ -238,7 +271,6 @@ func (h *MOHandler) Unsub() {
 	subscription := &entity.Subscription{
 		ServiceID:     service.GetId(),
 		Msisdn:        h.req.GetUserIdentifier(),
-		Channel:       "",
 		LatestTrxId:   trxId,
 		LatestKeyword: MO_UNREG + " " + service.GetCode(),
 		LatestSubject: SUBJECT_UNSUB,
@@ -250,35 +282,36 @@ func (h *MOHandler) Unsub() {
 	}
 	h.subscriptionService.UpdateDisable(subscription)
 
-	// select data by service_id & msisdn
-	// sub, err := h.subscriptionService.SelectSubscription(service.GetId(), h.req.GetUserIdentifier())
-	// if err != nil {
-	// 	log.Println(err)
-	// }
+	sub, err := h.subscriptionService.SelectSubscription(service.ID, h.req.GetUserIdentifier())
+	if err != nil {
+		log.Println(err)
+	}
+
 	transaction := &entity.Transaction{
 		TxID:         trxId,
 		ServiceID:    service.GetId(),
 		Msisdn:       h.req.GetUserIdentifier(),
-		Channel:      "",
-		Adnet:        "",
+		Channel:      sub.GetChannel(),
+		Adnet:        sub.GetAdnet(),
 		Keyword:      MO_UNREG + " " + service.GetCode(),
 		Status:       STATUS_SUCCESS,
 		StatusCode:   "",
 		StatusDetail: "",
 		Subject:      SUBJECT_UNSUB,
 		Payload:      "",
+		IpAddress:    sub.GetIpAddress(),
 	}
 	h.transactionService.SaveTransaction(transaction)
 
 	history := &entity.History{
 		ServiceID: service.GetId(),
 		Msisdn:    h.req.GetUserIdentifier(),
-		Channel:   "",
-		Adnet:     "",
+		Channel:   sub.GetChannel(),
+		Adnet:     sub.GetAdnet(),
 		Keyword:   MO_UNREG + " " + service.GetCode(),
 		Subject:   SUBJECT_UNSUB,
 		Status:    STATUS_SUCCESS,
-		IpAddress: "",
+		IpAddress: sub.GetIpAddress(),
 	}
 	h.historyService.SaveHistory(history)
 

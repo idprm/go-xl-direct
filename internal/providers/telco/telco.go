@@ -29,7 +29,6 @@ type Telco struct {
 	service      *entity.Service
 	subscription *entity.Subscription
 	session      *entity.Session
-	verify       *entity.Verify
 }
 
 func NewTelco(
@@ -37,14 +36,12 @@ func NewTelco(
 	service *entity.Service,
 	subscription *entity.Subscription,
 	session *entity.Session,
-	verify *entity.Verify,
 ) *Telco {
 	return &Telco{
 		logger:       logger,
 		service:      service,
 		subscription: subscription,
 		session:      session,
-		verify:       verify,
 	}
 }
 
@@ -108,7 +105,7 @@ func (t *Telco) CreateSubscription() ([]byte, error) {
 	r := &model.CreateSubscriptionRequest{
 		RequestId:      trxId,
 		ProductId:      t.service.GetProductId(),
-		UserIdentifier: t.verify.GetMsisdn(),
+		UserIdentifier: t.subscription.GetMsisdn(),
 		Amount:         t.service.GetPriceToString(),
 	}
 	r.SetPartnerId(t.service.GetSidMt())
@@ -183,7 +180,7 @@ func (t *Telco) ConfirmOTP(pin string) ([]byte, error) {
 	start := time.Now()
 	trxId := utils.GenerateTrxId()
 
-	urlTelco := TELCO_URL + "/subscription/" + t.verify.GetMsisdn() + "/" + t.service.GetProductId() + "/otp/confirm"
+	urlTelco := TELCO_URL + "/subscription/" + t.subscription.GetMsisdn() + "/" + t.service.GetProductId() + "/otp/confirm"
 	r := &model.ConfirmOTPRequest{
 		RequestId: trxId,
 		PIN:       pin,
@@ -223,7 +220,7 @@ func (t *Telco) ConfirmOTP(pin string) ([]byte, error) {
 
 	t.logger.Writer(req)
 	l.WithFields(logrus.Fields{
-		"msisdn":  t.verify.GetMsisdn(),
+		"msisdn":  t.subscription.GetMsisdn(),
 		"request": urlTelco,
 		"body":    string(jsonData),
 		"trx_id":  trxId,
@@ -244,7 +241,7 @@ func (t *Telco) ConfirmOTP(pin string) ([]byte, error) {
 	duration := time.Since(start).Milliseconds()
 	t.logger.Writer(string(body))
 	l.WithFields(logrus.Fields{
-		"msisdn":      t.verify.GetMsisdn(),
+		"msisdn":      t.subscription.GetMsisdn(),
 		"response":    string(body),
 		"trx_id":      trxId,
 		"duration":    duration,

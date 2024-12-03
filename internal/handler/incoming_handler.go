@@ -228,7 +228,6 @@ func (h *IncomingHandler) UnRegPage(c *fiber.Ctx) error {
 		service,
 		subscription,
 		&entity.Session{},
-		&entity.Verify{},
 	)
 
 	mt, err := t.UnsubscribeSubscription()
@@ -365,24 +364,13 @@ func (h *IncomingHandler) CreateSubscription(c *fiber.Ctx) error {
 		)
 	}
 
-	if c.Get("Cf-Connecting-Ip") != "" {
-		req.SetIpAddress(c.Get("Cf-Connecting-Ip"))
-	} else {
-		req.SetIpAddress(c.Get("X-Forwarded-For"))
-	}
-
-	verify := &entity.Verify{
-		Msisdn:    req.GetMsisdn(),
-		Service:   service,
-		IpAddress: req.IpAddress,
-	}
-
 	t := telco.NewTelco(
 		h.logger,
 		service,
-		&entity.Subscription{},
+		&entity.Subscription{
+			Msisdn: req.GetMsisdn(),
+		},
 		&entity.Session{},
-		verify,
 	)
 
 	mt, err := t.CreateSubscription()
@@ -400,9 +388,6 @@ func (h *IncomingHandler) CreateSubscription(c *fiber.Ctx) error {
 	json.Unmarshal(mt, &resp)
 
 	if resp.IsSuccess() {
-		verify.SetTrxId(resp.GetTransactionId())
-		h.verifyService.Set(verify)
-
 		return c.Status(fiber.StatusOK).JSON(
 			&model.WebResponse{
 				Error:      false,
@@ -477,23 +462,13 @@ func (h *IncomingHandler) ConfirmOTP(c *fiber.Ctx) error {
 		)
 	}
 
-	verify, err := h.verifyService.Get(req.GetMsisdn())
-	if err != nil {
-		return c.Status(fiber.StatusBadGateway).JSON(
-			&model.WebResponse{
-				Error:      true,
-				StatusCode: fiber.StatusBadGateway,
-				Message:    err.Error(),
-			},
-		)
-	}
-
 	t := telco.NewTelco(
 		h.logger,
 		service,
-		&entity.Subscription{},
+		&entity.Subscription{
+			Msisdn: req.GetMsisdn(),
+		},
 		&entity.Session{},
-		verify,
 	)
 
 	mt, err := t.ConfirmOTP(req.GetPin())
@@ -509,6 +484,22 @@ func (h *IncomingHandler) ConfirmOTP(c *fiber.Ctx) error {
 
 	var resp model.TelcoResponse
 	json.Unmarshal(mt, &resp)
+
+	h.verifyService.Set(
+		&entity.Verify{
+			TrxId:      resp.GetTransactionId(),
+			Msisdn:     req.GetMsisdn(),
+			Service:    service,
+			Channel:    req.Channel,
+			PIN:        req.GetPin(),
+			Keyword:    req.Keyword,
+			SubKeyword: req.SubKeyword,
+			Adnet:      req.Adnet,
+			PubID:      req.PubId,
+			AffSub:     req.AffSub,
+			IpAddress:  req.IpAddress,
+		},
+	)
 
 	if resp.IsSuccess() {
 		return c.Status(fiber.StatusOK).JSON(
@@ -612,7 +603,6 @@ func (h *IncomingHandler) Refund(c *fiber.Ctx) error {
 		service,
 		subscription,
 		&entity.Session{},
-		&entity.Verify{},
 	)
 
 	mt, err := t.UnsubscribeSubscription()
@@ -720,7 +710,6 @@ func (h *IncomingHandler) Unsubscribe(c *fiber.Ctx) error {
 		service,
 		subscription,
 		&entity.Session{},
-		&entity.Verify{},
 	)
 
 	mt, err := t.UnsubscribeSubscription()
