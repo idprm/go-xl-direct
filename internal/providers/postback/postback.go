@@ -4,7 +4,6 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/idprm/go-xl-direct/internal/domain/entity"
@@ -41,7 +40,7 @@ func (p *Postback) Send() ([]byte, error) {
 		p.service.GetCode(),
 		p.subscription.GetMsisdn(),
 		p.subscription.GetLatestTrxId(),
-		p.subscription.GetAdnet(),
+		p.subscription.GetAffSub(),
 	)
 
 	req, err := http.NewRequest("GET", p.service.GetUrlPostback(), nil)
@@ -98,14 +97,14 @@ func (p *Postback) Billable() ([]byte, error) {
 	start := time.Now()
 	trxId := utils.GenerateTrxId()
 
-	q := url.Values{}
-	q.Add("partner", "linkitxl")
-	q.Add("px", p.subscription.GetAdnet())
-	q.Add("serv_id", p.service.GetCode())
-	q.Add("msisdn", p.subscription.GetMsisdn())
-	q.Add("trxid", p.subscription.GetLatestTrxId())
+	p.service.SetUrlPostback(
+		p.service.GetCode(),
+		p.subscription.GetMsisdn(),
+		p.subscription.GetLatestTrxId(),
+		p.subscription.GetAffSub(),
+	)
 
-	req, err := http.NewRequest("GET", p.service.UrlPostbackBillable+"?"+q.Encode(), nil)
+	req, err := http.NewRequest("GET", p.service.GetUrlPostbackBillable(), nil)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
@@ -124,7 +123,7 @@ func (p *Postback) Billable() ([]byte, error) {
 	p.logger.Writer(req)
 	l.WithFields(logrus.Fields{
 		"msisdn":  p.subscription.GetMsisdn(),
-		"request": p.service.UrlPostbackBillable + "?" + q.Encode(),
+		"request": p.service.GetUrlPostbackBillable(),
 		"trx_id":  trxId,
 	}).Info("BILLABLE")
 
