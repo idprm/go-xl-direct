@@ -401,6 +401,15 @@ func (r *WebOTPRequest) GetPin() string {
 	return r.Pin
 }
 
+func (r *WebOTPRequest) GetKeyword() string {
+	replacer := strings.NewReplacer("+", " ")
+	return strings.ToUpper(replacer.Replace(r.Keyword))
+}
+
+func (r *WebOTPRequest) GetSubKeyword() string {
+	return strings.ToUpper(r.SubKeyword)
+}
+
 type WebUnRegRequest struct {
 	Msisdn string `query:"msisdn" json:"msisdn"`
 }
