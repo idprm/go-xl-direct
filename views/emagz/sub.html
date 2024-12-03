@@ -335,6 +335,11 @@
             var service =  $("#code").val();
             var msisdn = $("#msisdn").val();
             var pin = $("#pin").val();
+            keyword = getUrlParameter("keyword");
+            subkey = getUrlParameter("subkey");
+            adnet = getUrlParameter('ad');
+            pubid = getUrlParameter('pubid');
+            aff_sub = getUrlParameter('aff_sub');
 
             if (pin.length == 6) {
                 $.ajax({
