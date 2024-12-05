@@ -145,11 +145,14 @@
                                 }
 
                             },
-                            error: function (json) {
+                            error: function (xhr, textStatus, error) {
+                                console.log(xhr.statusText);
+                                console.log(textStatus);
+                                console.log(error);
                                 Swal.fire({
                                     icon: 'error',
                                     title: 'Error',
-                                    text: json.message,
+                                    text: textStatus,
                                 });
                                 
                             }
