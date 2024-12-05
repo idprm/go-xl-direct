@@ -145,11 +145,11 @@
                                 }
 
                             },
-                            error: function () {
+                            error: function (json) {
                                 Swal.fire({
                                     icon: 'error',
-                                    title: 'Oops...',
-                                    text: "Timeout",
+                                    title: 'Error',
+                                    text: json.message,
                                 });
                                 
                             }
