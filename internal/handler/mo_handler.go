@@ -282,11 +282,6 @@ func (h *MOHandler) Unsub() {
 	}
 	h.subscriptionService.UpdateDisable(subscription)
 
-	sub, err := h.subscriptionService.SelectSubscription(service.ID, h.req.GetUserIdentifier())
-	if err != nil {
-		log.Println(err)
-	}
-
 	transaction := &entity.Transaction{
 		TxID:         trxId,
 		ServiceID:    service.GetId(),
@@ -299,7 +294,7 @@ func (h *MOHandler) Unsub() {
 		StatusDetail: "",
 		Subject:      SUBJECT_UNSUB,
 		Payload:      "",
-		IpAddress:    sub.GetIpAddress(),
+		IpAddress:    "",
 	}
 	h.transactionService.SaveTransaction(transaction)
 
@@ -311,7 +306,7 @@ func (h *MOHandler) Unsub() {
 		Keyword:   MO_UNREG + " " + service.GetCode(),
 		Subject:   SUBJECT_UNSUB,
 		Status:    STATUS_SUCCESS,
-		IpAddress: sub.GetIpAddress(),
+		IpAddress: "",
 	}
 	h.historyService.SaveHistory(history)
 
